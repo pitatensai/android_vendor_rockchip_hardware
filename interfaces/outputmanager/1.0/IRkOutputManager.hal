@@ -94,7 +94,7 @@ interface IRkOutputManager{
 
     @callflow(next={"*"})
     getDisplayModes(Display display) generates (Result error, vec<RkDrmMode> modes);
-    
+
     @callflow(next={"*"})
     saveConfig();
 
