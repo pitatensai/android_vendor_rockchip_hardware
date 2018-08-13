@@ -253,7 +253,7 @@ Return<void> RkOutputManager::getDisplayModes(Display display, getDisplayModes_c
     if (mModes != NULL) {
         res = Result::OK;
         mDisplayModes.resize((size_t)size);
-        ALOGV("RkOutputManager::getDisplayModes .size = %d", mDisplayModes.size());
+        ALOGV("RkOutputManager::getDisplayModes .size = %d", (int)mDisplayModes.size());
         for (uint32_t i=0;i<size;i++) {
             mDisplayModes[i].width = mModes[i].width;
             mDisplayModes[i].height = mModes[i].height;
