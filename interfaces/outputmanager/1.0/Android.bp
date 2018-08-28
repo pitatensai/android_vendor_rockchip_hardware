@@ -15,6 +15,6 @@ hidl_interface {
         "RkComposerEvent",
         "RkDrmMode",
     ],
-    gen_java: true,
+    gen_java: false,
 }
 
