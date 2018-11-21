@@ -69,6 +69,7 @@ struct RkOutputManager : public IRkOutputManager {
     Return<void> getDisplayModes(Display display, getDisplayModes_cb _hidl_cb) override;
     Return<void> saveConfig() override;
     Return<void> hotPlug() override;
+    Return<Result> set3DMode(const hidl_string& mode)  override;
 private:
     hw_output_device* mHwOutput;
 };

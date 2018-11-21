@@ -100,5 +100,8 @@ interface IRkOutputManager{
 
     @callflow(next={"*"})
     hotPlug();
+
+    @callflow(next={"*"})
+    set3DMode( string mode) generates (Result error);
 };
 

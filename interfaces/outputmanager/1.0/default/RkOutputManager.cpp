@@ -49,6 +49,13 @@ Return<Result> RkOutputManager::setMode(Display display, const hidl_string& mode
     return Result::OK;
 }
 
+Return<Result> RkOutputManager::set3DMode(const hidl_string& mode)
+{
+    std::string modeStd(mode.c_str());
+    mHwOutput->set3DMode(mHwOutput, modeStd.c_str());
+    return Result::OK;
+}
+
 Return<Result> RkOutputManager::setGamma(Display display, uint32_t size, const hidl_vec<uint16_t>& r, const hidl_vec<uint16_t>& g, const hidl_vec<uint16_t>& b)
 {
     uint16_t red[size];
