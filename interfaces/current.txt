@@ -1,2 +1,2 @@
 5bef99d494d3fddde61d5249bcccb7ade94a6bb2032c145fa3cebc233aade412 rockchip.hardware.outputmanager@1.0::types
-b06b1e3f5c972778f95b8d661ec7e11e75ee8596bab7174cbabb91e7a14493ab rockchip.hardware.outputmanager@1.0::IRkOutputManager
+d8b3408771e3adad3046e363a1e828819971fe97b2131e0c39decd454e2cc36b rockchip.hardware.outputmanager@1.0::IRkOutputManager
