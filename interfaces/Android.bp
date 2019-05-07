@@ -3,9 +3,3 @@ hidl_package_root {
     path: "vendor/rockchip/hardware/interfaces",
 }
 
-cc_defaults {
-    cflags: [
-        "-Wall",
-        "-Werror",
-    ],
-}
