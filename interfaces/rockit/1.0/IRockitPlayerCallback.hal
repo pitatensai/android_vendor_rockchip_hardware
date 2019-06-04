@@ -1,0 +1,77 @@
+/*
+ * Copyright 2018 Rockchip Electronics Co. LTD
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * Author: rimon.xu@rock-chips.com
+ *   Date: 2019/06/04
+ */
+
+package rockchip.hardware.rockit@1.0;
+
+import rockchip.hardware.rockit@1.0::types;
+
+/**
+ * Entry point for Rockit HAL.
+ */
+interface IRockitPlayerCallback {
+    sendEvent(int32_t msg, int32_t ext1, int32_t ext2);
+
+    /**
+     * AudioSink callback API
+     */
+    open(
+        uint32_t sampleRate,
+        int32_t  channelCount,
+        int32_t  channelMask,
+        int32_t  format,
+        int32_t  bufferCount,
+        /* Bytes callback, TODO */
+        Bytes    cookie,
+        int32_t  flags,
+        Bytes    offloadInfo,
+        bool     doNotReconnect,
+        uint32_t suggestedFrameCount)
+    generates(
+        Status status
+    );
+
+    start() generates(Status status);
+
+    pause() generates(Status status);
+    stop()  generates(Status status);
+    flush() generates(Status status);
+    close() generates(Status status);
+
+    write(Bytes buffer, int32_t size) generates(int32_t consumedLen);
+    latency()   generates(int32_t letency);
+    frameSize() generates(int32_t size);
+
+    getPlaybackRate()
+    generates(
+        Status status,
+        AudioPlaybackRate param
+    );
+
+    setPlaybackRate(
+        AudioPlaybackRate param)
+    generates(
+        Status status
+    );
+
+    getPlayedOutDurationUs()
+    generates(
+        int64_t playedUs
+    );
+};
+

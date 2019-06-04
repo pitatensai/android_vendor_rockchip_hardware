@@ -1,0 +1,113 @@
+/*
+ * Copyright 2018 Rockchip Electronics Co. LTD
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * Author: rimon.xu@rock-chips.com
+ *   Date: 2019/06/04
+ */
+
+package rockchip.hardware.rockit@1.0;
+
+import IRockitPlayerCallback;
+import IRTNativeWindowCallback;
+
+/**
+ * Entry point for Rockit HAL.
+ */
+interface IRockitPlayer {
+    createPlayer() generates(Status status);
+
+    destroyPlayer() generates(Status status);
+
+    initCheck() generates (Status status);
+
+    setDataSource(
+        Bytes        httpService,
+        string       url,
+        Bytes        headers)
+    generates (
+        Status       status
+    );
+
+    setNativeWindow(
+         Bytes      window)
+    generates (
+         Status     status
+    );
+
+    prepare() generates (Status status);
+
+    prepareAsync() generates (Status status);
+
+    start() generates (Status status);
+
+    stop() generates (Status status);
+
+    pause() generates (Status status);
+
+    isPlaying() generates (bool isPlay);
+
+    seekTo(
+        int32_t     msec,
+        uint32_t    mode)
+    generates (
+        Status      status
+    );
+
+    getCurrentPosition()
+    generates (
+        Status      status,
+        int32_t     msec
+    );
+
+    getDuration()
+    generates (
+        Status      status,
+        int32_t     msec
+    );
+
+    reset() generates (Status status);
+
+    setLooping(int32_t loop) generates (Status status);
+
+    playerType() generates (player_type type);
+
+    invoke(RockitInvokeEvent event)
+    generates (
+        Status     status,
+        RockitInvokeReply reply
+    );
+
+    setAudioSink(Bytes audioSink);
+
+    setParameter(
+        int32_t    key,
+        Bytes      reply)
+    generates (
+        Status     status
+    );
+
+    registerCallback(
+        IRockitPlayerCallback callback)
+    generates (
+        Status     status
+    );
+
+    registerNativeWindowCallback(
+        IRTNativeWindowCallback callback)
+    generates (
+        Status status
+    );
+};
+
