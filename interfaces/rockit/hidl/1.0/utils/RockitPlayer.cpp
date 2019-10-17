@@ -332,8 +332,8 @@ Return<void> RockitPlayer::invoke(const ::rockchip::hardware::rockit::V1_0::Rock
     fillInvokeReply(event.event, out, &reply);
     _hidl_cb(Status::OK, reply);
 
-    mDestroyPlayerFunc((void **)&in);
-    mDestroyPlayerFunc((void **)&out);
+    mDestroyMetaDataFunc((void **)&in);
+    mDestroyMetaDataFunc((void **)&out);
     return Void();
 }
 
