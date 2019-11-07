@@ -68,6 +68,7 @@ enum InvokeIds {
 typedef struct _RockitTrackInfo {
     int32_t  mCodecType;
     int32_t  mCodecID;
+    uint32_t mCodecOriginID;
     int32_t  mIdx;
 
     /* video track features */
