@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#define LOG_NDEBUG 0
+//#define LOG_NDEBUG 0
 #define LOG_TAG "NativeWindowCallback"
 #include <utils/Log.h>
 #include <dlfcn.h>
@@ -106,8 +106,6 @@ int32_t drm_fd_to_handle(
     }
 
     *handle = dph.handle;
-
-    ALOGD("get handle %d", *handle);
 
     return ret;
 }

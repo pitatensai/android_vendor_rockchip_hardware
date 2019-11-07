@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#define LOG_NDEBUG 0
+//#define LOG_NDEBUG 0
 #define LOG_TAG "Rockit-Player"
 
 #include <dlfcn.h>
@@ -192,8 +192,8 @@ Return<bool>   RockitPlayer::isPlaying() {
 Return<Status> RockitPlayer::seekTo(
             int32_t msec,
             uint32_t mode) {
-    ALOGV("seekto time: %d, mode: %d", msec, mode);
-    mPlayerImpl->seekTo((int64_t)(msec * 1000));
+    ALOGD("seekto time: %d, mode: %d", msec, mode);
+    mPlayerImpl->seekTo(((int64_t)msec) * 1000);
     return Status::OK;
 }
 

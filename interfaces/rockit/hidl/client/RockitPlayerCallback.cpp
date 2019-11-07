@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#define LOG_NDEBUG 0
+//#define LOG_NDEBUG 0
 #define LOG_TAG "RockitPlayerCallback"
 #include <utils/Log.h>
 #include <dlfcn.h>
@@ -66,7 +66,7 @@ Return<Status> RockitPlayerCallback::open(uint32_t sampleRate,
                     bool     doNotReconnect,
                     uint32_t suggestedFrameCount) {
     android::RockitPlayerClient *player = (android::RockitPlayerClient *)mPlayer;
-    ALOGE("open in audio sink: %p", player->getAudioSink().get());
+    ALOGV("open in audio sink: %p", player->getAudioSink().get());
     player->getAudioSink()->open(sampleRate,
                                   channelCount,
                                   channelMask,
@@ -82,35 +82,35 @@ Return<Status> RockitPlayerCallback::open(uint32_t sampleRate,
 }
 
 Return<Status> RockitPlayerCallback::start() {
-    ALOGE("start in");
+    ALOGV("start in");
     android::RockitPlayerClient *player = (android::RockitPlayerClient *)mPlayer;
     player->getAudioSink()->start();
     return Status::OK;
 }
 
 Return<Status> RockitPlayerCallback::pause() {
-    ALOGE("pause in");
+    ALOGV("pause in");
     android::RockitPlayerClient *player = (android::RockitPlayerClient *)mPlayer;
     player->getAudioSink()->pause();
     return Status::OK;
 }
 
 Return<Status> RockitPlayerCallback::stop() {
-    ALOGE("stop in");
+    ALOGV("stop in");
     android::RockitPlayerClient *player = (android::RockitPlayerClient *)mPlayer;
     player->getAudioSink()->stop();
     return Status::OK;
 }
 
 Return<Status> RockitPlayerCallback::flush() {
-    ALOGE("flush in");
+    ALOGV("flush in");
     android::RockitPlayerClient *player = (android::RockitPlayerClient *)mPlayer;
     player->getAudioSink()->flush();
     return Status::OK;
 }
 
 Return<Status> RockitPlayerCallback::close() {
-    ALOGE("close in");
+    ALOGV("close in");
     android::RockitPlayerClient *player = (android::RockitPlayerClient *)mPlayer;
     player->getAudioSink()->close();
     return Status::OK;
@@ -119,25 +119,25 @@ Return<Status> RockitPlayerCallback::close() {
 Return<int32_t> RockitPlayerCallback::write(
             hidl_vec<uint8_t> const& buffer,
             int32_t size) {
-    ALOGE("write(data=%p, size=%d)", buffer.data(), size);
+    ALOGV("write(data=%p, size=%d)", buffer.data(), size);
     android::RockitPlayerClient *player = (android::RockitPlayerClient *)mPlayer;
     return player->getAudioSink()->write(buffer.data(), size);
 }
 
 Return<int32_t> RockitPlayerCallback::latency() {
-    ALOGE("latency in");
+    ALOGV("latency in");
     android::RockitPlayerClient *player = (android::RockitPlayerClient *)mPlayer;
     return player->getAudioSink()->latency();
 }
 
 Return<int32_t> RockitPlayerCallback::frameSize() {
-    ALOGE("frameSize in");
+    ALOGV("frameSize in");
     android::RockitPlayerClient *player = (android::RockitPlayerClient *)mPlayer;
     return player->getAudioSink()->frameSize();
 }
 
 Return<void>  RockitPlayerCallback::getPlaybackRate(getPlaybackRate_cb _hidl_cb) {
-    ALOGE("getPlaybackRate in");
+    ALOGV("getPlaybackRate in");
     AudioPlaybackRate playbackRate;
     android::AudioPlaybackRate playbackRateTmp;
     android::RockitPlayerClient *player = (android::RockitPlayerClient *)mPlayer;
@@ -152,7 +152,7 @@ Return<void>  RockitPlayerCallback::getPlaybackRate(getPlaybackRate_cb _hidl_cb)
 }
 
 Return<Status>  RockitPlayerCallback::setPlaybackRate(const ::rockchip::hardware::rockit::V1_0::AudioPlaybackRate& param) {
-    ALOGE("setPlaybackRate in");
+    ALOGV("setPlaybackRate in");
     android::AudioPlaybackRate playbackRateTmp;
     android::RockitPlayerClient *player = (android::RockitPlayerClient *)mPlayer;
     playbackRateTmp.mSpeed = param.mSpeed;
@@ -167,7 +167,7 @@ Return<int64_t>  RockitPlayerCallback::getPlayedOutDurationUs() {
     int64_t playedUs;
     android::RockitPlayerClient *player = (android::RockitPlayerClient *)mPlayer;
     playedUs = player->getAudioSink()->getPlayedOutDurationUs(systemTime(SYSTEM_TIME_MONOTONIC) / 1000ll);
-    ALOGE("getPlayedOutDurationUs playedUs: %lld ", (long long)playedUs);
+    ALOGV("getPlayedOutDurationUs playedUs: %lld ", (long long)playedUs);
     return playedUs;
 }
 
