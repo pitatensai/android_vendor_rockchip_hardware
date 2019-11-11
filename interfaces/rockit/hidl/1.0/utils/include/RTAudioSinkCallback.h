@@ -52,7 +52,7 @@ public:
 
     virtual int32_t write(const void *buffer, int32_t size);
 
-    virtual int32_t latency();
+    virtual uint32_t latency();
     virtual int32_t frameSize();
     virtual int32_t getPlaybackRate(RTAudioPlaybackRate *param);
     virtual int32_t setPlaybackRate(RTAudioPlaybackRate param);

@@ -65,7 +65,7 @@ public:
     virtual Return<Status> close();
 
     virtual Return<int32_t> write(hidl_vec<uint8_t> const& buffer, int32_t size);
-    virtual Return<int32_t> latency();
+    virtual Return<uint32_t> latency();
     virtual Return<int32_t> frameSize();
     virtual Return<void>    getPlaybackRate(getPlaybackRate_cb _hidl_cb);
     virtual Return<Status>  setPlaybackRate(const ::rockchip::hardware::rockit::V1_0::AudioPlaybackRate& param);

@@ -76,7 +76,7 @@ int RTAudioSinkCallback::close() {
     return toStatusT(mPlayer->mCallback->close());
 }
 
-int32_t RTAudioSinkCallback::latency() {
+uint32_t RTAudioSinkCallback::latency() {
     ALOGV("RTAudioSinkCallback latency in");
     return mPlayer->mCallback->latency();
 }

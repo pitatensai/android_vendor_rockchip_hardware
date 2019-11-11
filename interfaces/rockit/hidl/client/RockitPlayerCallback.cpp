@@ -67,7 +67,7 @@ Return<Status> RockitPlayerCallback::open(uint32_t sampleRate,
                     uint32_t suggestedFrameCount) {
     android::RockitPlayerClient *player = (android::RockitPlayerClient *)mPlayer;
     ALOGV("open in audio sink: %p", player->getAudioSink().get());
-    player->getAudioSink()->open(sampleRate,
+    android::status_t ret = player->getAudioSink()->open(sampleRate,
                                   channelCount,
                                   channelMask,
                                   (audio_format_t)format,
@@ -78,14 +78,14 @@ Return<Status> RockitPlayerCallback::open(uint32_t sampleRate,
                                   (const audio_offload_info_t *)offloadInfo.data(),
                                   doNotReconnect,
                                   suggestedFrameCount);
-    return Status::OK;
+    return (ret == android::NO_ERROR)?(Status::OK):(Status::BAD_VALUE);
 }
 
 Return<Status> RockitPlayerCallback::start() {
     ALOGV("start in");
     android::RockitPlayerClient *player = (android::RockitPlayerClient *)mPlayer;
-    player->getAudioSink()->start();
-    return Status::OK;
+    android::status_t ret = player->getAudioSink()->start();
+    return (ret == android::NO_ERROR)?(Status::OK):(Status::BAD_VALUE);
 }
 
 Return<Status> RockitPlayerCallback::pause() {
@@ -124,7 +124,11 @@ Return<int32_t> RockitPlayerCallback::write(
     return player->getAudioSink()->write(buffer.data(), size);
 }
 
-Return<int32_t> RockitPlayerCallback::latency() {
+/*
+ * in mediaplayerservice, the parameter of result is uint32_t
+ * see AudioOutput::latency
+ */
+Return<uint32_t> RockitPlayerCallback::latency() {
     ALOGV("latency in");
     android::RockitPlayerClient *player = (android::RockitPlayerClient *)mPlayer;
     return player->getAudioSink()->latency();

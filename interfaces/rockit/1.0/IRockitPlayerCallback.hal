@@ -54,7 +54,7 @@ interface IRockitPlayerCallback {
     close() generates(Status status);
 
     write(Bytes buffer, int32_t size) generates(int32_t consumedLen);
-    latency()   generates(int32_t letency);
+    latency()   generates(uint32_t letency);
     frameSize() generates(int32_t size);
 
     getPlaybackRate()

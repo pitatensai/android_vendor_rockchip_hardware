@@ -208,7 +208,7 @@ class RTAudioSinkCBInterface {
     virtual int32_t close() = 0;
 
     virtual int32_t write(const void *buffer, int32_t size) = 0;
-    virtual int32_t latency() = 0;
+    virtual uint32_t latency() = 0;
     virtual int32_t frameSize() = 0;
     virtual int32_t getPlaybackRate(RTAudioPlaybackRate *param) = 0;
     virtual int32_t setPlaybackRate(RTAudioPlaybackRate param) = 0;
