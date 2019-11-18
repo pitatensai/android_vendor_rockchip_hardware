@@ -394,6 +394,21 @@ Return<Status> RTNativeWindow::setDataSpace(
     return Status::OK;
 }
 
+Return<Status> RTNativeWindow::setTransform(
+        hidl_vec<uint8_t> const& nativeWindow,
+        int32_t transform) {
+    ANativeWindow          *window = NULL;
+    hidl_vec<uint8_t>       hidlWindow(nativeWindow);
+
+    window = ((ANativeWindow **)hidlWindow.data())[0];
+    ALOGV("setTransform  window: %p, transform: 0x%x", mWindow, transform);
+    if (mWindow != NULL) {
+        native_window_set_buffers_transform(mWindow, transform);
+    }
+    return Status::OK;
+}
+
+
 Return<void> RTNativeWindow::setNativeWindow(ANativeWindow *window) {
     mWindow = window;
     return Void();

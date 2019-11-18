@@ -95,6 +95,8 @@ public:
 
     virtual Return<Status> setDataSpace(hidl_vec<uint8_t> const& nativeWindow,
                                              int32_t dataSpace);
+    virtual Return<Status> setTransform(hidl_vec<uint8_t> const& nativeWindow,
+                                             int32_t transform);
     virtual Return<void>   setNativeWindow(ANativeWindow *window);
 private:
     int32_t             mDrmFd;

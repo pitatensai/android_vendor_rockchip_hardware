@@ -165,6 +165,13 @@ int RTNativeWindowCallback::setDataSpace(void *nativeWindow, int32_t dataSpace) 
                               windowParam, dataSpace));
 }
 
+int RTNativeWindowCallback::setTransform(void *nativeWindow, int32_t transform) {
+    hidl_vec<uint8_t> windowParam = inHidlBytes((void *)&nativeWindow, sizeof(void *));
+    return toStatusT(mPlayer->mNativeWindowCallback->setTransform(
+                              windowParam, transform));
+}
+
+
 }  // namespace utils
 }  // namespace V1_0
 }  // namespace rockit

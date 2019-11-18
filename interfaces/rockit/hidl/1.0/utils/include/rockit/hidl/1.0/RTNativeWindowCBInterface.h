@@ -63,6 +63,8 @@ class RTNativeWindowCBInterface {
 
     virtual int setDataSpace(void *nativeWindow, int32_t dataSpace) = 0;
 
+    virtual int setTransform(void *nativeWindow, int32_t transform) = 0;
+
     virtual ~RTNativeWindowCBInterface() {}
 };
 

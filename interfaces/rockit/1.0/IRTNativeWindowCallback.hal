@@ -128,5 +128,12 @@ interface IRTNativeWindowCallback {
     generates(
         Status      status
     );
+
+    setTransform(
+        Bytes       nativeWindow,
+        int32_t     transform)
+    generates(
+        Status      status
+    );
 };
 
