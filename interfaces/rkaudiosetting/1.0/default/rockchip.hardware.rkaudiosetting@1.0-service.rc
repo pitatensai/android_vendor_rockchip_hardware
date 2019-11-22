@@ -1,0 +1,4 @@
+service vendor.rkaudiosetting-1-0 /vendor/bin/hw/rockchip.hardware.rkaudiosetting@1.0-service
+    class hal
+    user system
+    group system

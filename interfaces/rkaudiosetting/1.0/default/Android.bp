@@ -1,0 +1,62 @@
+cc_library_shared {
+    name: "rockchip.hardware.rkaudiosetting@1.0-impl",
+    defaults: ["hidl_defaults"],
+    vendor: true,
+    relative_install_path: "hw",
+
+    srcs: [
+        "RkAudioSetting.cpp",
+        "RkAudioSettingManager.cpp",
+        "audio_hw_hdmi.cpp",
+    ],
+
+    include_dirs: [
+        "external/tinyxml",
+        "system/media/audio/include",
+    ],
+
+    shared_libs: [
+        "libbase",
+        "liblog",
+        "libcutils",
+        "libhidlbase",
+        "libhidltransport",
+        "libutils",
+        "libbinder",
+        "libhwbinder",
+        "libtinyxml",
+        "rockchip.hardware.rkaudiosetting@1.0",
+    ],
+
+    cflags: [
+        "-Wall",
+        "-Werror",
+        "-Wno-undefined-bool-conversion",
+    ],
+}
+
+cc_binary {
+    name: "rockchip.hardware.rkaudiosetting@1.0-service",
+    defaults: ["hidl_defaults"],
+    vendor: true,
+    relative_install_path: "hw",
+    init_rc: ["rockchip.hardware.rkaudiosetting@1.0-service.rc"],
+    srcs: ["service.cpp"],
+
+    shared_libs: [
+        "liblog",
+        "libcutils",
+        "libdl",
+        "libbase",
+        "libutils",
+        "libhardware_legacy",
+        "libhidlbase",
+        "libhidltransport",
+        "libbinder",
+        "rockchip.hardware.rkaudiosetting@1.0",
+    ],
+
+    include_dirs: [
+        "frameworks/native/libs/binder/include",
+    ],
+}
