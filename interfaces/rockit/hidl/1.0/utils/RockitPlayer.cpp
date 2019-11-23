@@ -15,7 +15,7 @@
  */
 
 //#define LOG_NDEBUG 0
-#define LOG_TAG "Rockit-Player"
+#define LOG_TAG "RockitPlayer"
 
 #include <dlfcn.h>
 #include <android-base/logging.h>
@@ -71,11 +71,17 @@ RockitPlayer::RockitPlayer()
                 mPlayerLibFd(NULL),
                 mCreatePlayerFunc(NULL),
                 mDestroyPlayerFunc(NULL),
-                mCallback(NULL) {
+                mPlayerCallback(NULL),
+                mAudioSinkCallback(NULL),
+                mNativeWindowCallback(NULL),
+                mRTPlayerCallback(NULL),
+                mRTAudioSinkCallback(NULL),
+                mRTNativeWindowCallback(NULL){
+    ALOGV("RockitPlayer(%p) construct", this);
 }
 
 RockitPlayer::~RockitPlayer() {
-
+    ALOGV("~RockitPlayer(%p) destruct", this);
 }
 
 Return<Status> RockitPlayer::createPlayer() {
@@ -119,15 +125,36 @@ Return<Status> RockitPlayer::createPlayer() {
 }
 
 Return<Status> RockitPlayer::destroyPlayer() {
-    ALOGV("destroyPlayer");
-    mNativeWindowCallback = NULL;
-    mCallback = NULL;
     mDestroyPlayerFunc((void **)&mPlayerImpl);
+    if (mPlayerLibFd != NULL) {
+        dlclose(mPlayerLibFd);
+        mPlayerLibFd = NULL;
+    }
+
+    mPlayerCallback = NULL;
+    mAudioSinkCallback = NULL;
+    mNativeWindowCallback = NULL;
+
+    if (mRTAudioSinkCallback != NULL) {
+        delete mRTAudioSinkCallback;
+        mRTAudioSinkCallback = NULL;
+    }
+
+    if (mRTNativeWindowCallback != NULL) {
+        delete mRTNativeWindowCallback;
+        mRTNativeWindowCallback = NULL;
+    }
+
+    if (mRTPlayerCallback != NULL) {
+        delete mRTPlayerCallback;
+        mRTPlayerCallback = NULL;
+    }
+    ALOGV("RockitPlayer::destroyPlayer %p ok", mPlayerImpl);
     return Status::OK;
 }
 
 Return<Status> RockitPlayer::initCheck() {
-    ALOGV("initCheck in");
+    ALOGV("initCheck in %p", this);
     return Status::OK;
 }
 
@@ -353,33 +380,47 @@ Return<Status> RockitPlayer::setParameter(
     return Status::OK;
 }
 
-Return<Status> RockitPlayer::registerCallback(
-        const ::android::sp<::rockchip::hardware::rockit::V1_0::IRockitPlayerCallback>& callback) {
-    ALOGV("registerCallback in");
-    mCallback = callback;
-    RockitMsgCallback *msgCallback = new RockitMsgCallback(this);
-    mPlayerImpl->setListener(msgCallback);
-    RTAudioSinkCallback *audioSinkCallback = new RTAudioSinkCallback(this);
-    mPlayerImpl->setAudioSink(audioSinkCallback);
+Return<Status> RockitPlayer::registerPlayerCallback(
+        const ::android::sp<::rockchip::hardware::rockit::V1_0::IRTPlayerCallback>& callback) {
+    ALOGV("register player callback in");
+    mPlayerCallback = callback;
+    mRTPlayerCallback = new RTPlayerCallback(this);
+    mPlayerImpl->setListener(mRTPlayerCallback);
+    return Status::OK;
+}
+
+Return<Status> RockitPlayer::registerAudioSinkCallback(
+        const ::android::sp<::rockchip::hardware::rockit::V1_0::IRTAudioSinkCallback>& callback) {
+    ALOGV("register audiosink callback in");
+    mAudioSinkCallback = callback;
+    mRTAudioSinkCallback = new RTAudioSinkCallback(this);
+    mPlayerImpl->setAudioSink(mRTAudioSinkCallback);
     return Status::OK;
 }
 
 Return<Status> RockitPlayer::registerNativeWindowCallback(
             const ::android::sp<::rockchip::hardware::rockit::V1_0::IRTNativeWindowCallback> &callback) {
     mNativeWindowCallback = callback;
-    RTNativeWindowCallback *nativeWindowCallback = new RTNativeWindowCallback(this);
-    mPlayerImpl->setVideoSurfaceCB(nativeWindowCallback);
+    mRTNativeWindowCallback = new RTNativeWindowCallback(this);
+    mPlayerImpl->setVideoSurfaceCB(mRTNativeWindowCallback);
     return Status::OK;
 }
 
-RockitMsgCallback::RockitMsgCallback(sp<RockitPlayer> player) {
+RTPlayerCallback::RTPlayerCallback(sp<RockitPlayer> player) {
     mPlayer = player;
 }
 
-void RockitMsgCallback::notify(INT32 msg, INT32 ext1, INT32 ext2, void* ptr) {
+RTPlayerCallback::~RTPlayerCallback() {
+    mPlayer.clear();
+    mPlayer = NULL;
+    ALOGV("~RTPlayerCallback(%p) destruct", this);
+}
+
+
+void RTPlayerCallback::notify(INT32 msg, INT32 ext1, INT32 ext2, void* ptr) {
     (void)ptr;
     ALOGV("notify msg: %d, ext1: %d, ext2: %d", msg, ext1, ext2);
-    mPlayer->mCallback->sendEvent(msg, ext1, ext2);
+    mPlayer->mPlayerCallback->sendEvent(msg, ext1, ext2);
 }
 
 }  // namespace utils

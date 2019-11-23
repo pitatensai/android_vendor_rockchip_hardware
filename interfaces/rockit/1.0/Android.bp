@@ -5,9 +5,11 @@ hidl_interface {
     root: "rockchip.hardware",
     srcs: [
         "types.hal",
-        "IRockitPlayer.hal",
-        "IRockitPlayerCallback.hal",
+        "IRTPlayerCallback.hal",
+        "IRTAudioSinkCallback.hal",
         "IRTNativeWindowCallback.hal",
+        "IRockitPlayer.hal",
+        "IRockitPlayerService.hal",
     ],
     interfaces: [
         "android.hidl.base@1.0",

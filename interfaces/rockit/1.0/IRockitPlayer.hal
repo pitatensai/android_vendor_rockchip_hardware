@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Author: rimon.xu@rock-chips.com
- *   Date: 2019/06/04
  */
 
 package rockchip.hardware.rockit@1.0;
 
-import IRockitPlayerCallback;
+import IRTPlayerCallback;
+import IRTAudioSinkCallback;
 import IRTNativeWindowCallback;
 
 /**
@@ -98,8 +97,14 @@ interface IRockitPlayer {
         Status     status
     );
 
-    registerCallback(
-        IRockitPlayerCallback callback)
+    registerPlayerCallback(
+        IRTPlayerCallback callback)
+    generates (
+        Status     status
+    );
+
+    registerAudioSinkCallback(
+        IRTAudioSinkCallback callback)
     generates (
         Status     status
     );

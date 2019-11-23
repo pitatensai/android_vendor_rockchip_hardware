@@ -4,6 +4,7 @@ cc_library {
 
     srcs: [
         "RockitPlayerCallback.cpp",
+        "AudioSinkCallback.cpp",
         "NativeWindowCallback.cpp",
         "RockitPlayerManager.cpp",
         "RockitPlayerInterface.cpp",

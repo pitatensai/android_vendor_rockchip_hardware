@@ -18,7 +18,8 @@
 #define ROCKIT_HIDL_V1_0_UTILS_ROCKITPLAYER_H
 
 #include <rockchip/hardware/rockit/1.0/IRockitPlayer.h>
-#include <rockchip/hardware/rockit/1.0/IRockitPlayerCallback.h>
+#include <rockchip/hardware/rockit/1.0/IRTPlayerCallback.h>
+#include <rockchip/hardware/rockit/1.0/IRTAudioSinkCallback.h>
 #include <rockchip/hardware/rockit/1.0/IRTNativeWindowCallback.h>
 
 #include <hidl/Status.h>
@@ -89,6 +90,10 @@ typedef struct _RockitTrackInfo {
     char mine[16];
 } RockitTrackInfor;
 
+class RTAudioSinkCallback;
+class RTNativeWindowCallback;
+class RTPlayerCallback;
+
 struct RockitPlayer : public IRockitPlayer {
     RockitPlayer();
 
@@ -126,8 +131,11 @@ struct RockitPlayer : public IRockitPlayer {
                 int32_t key,
                 hidl_vec<uint8_t> const& request);
 
-    virtual Return<Status> registerCallback(
-                const ::android::sp<::rockchip::hardware::rockit::V1_0::IRockitPlayerCallback>& callback);
+    virtual Return<Status> registerPlayerCallback(
+                const ::android::sp<::rockchip::hardware::rockit::V1_0::IRTPlayerCallback>& callback);
+
+    virtual Return<Status> registerAudioSinkCallback(
+                const ::android::sp<::rockchip::hardware::rockit::V1_0::IRTAudioSinkCallback>& callback);
 
     virtual Return<Status> registerNativeWindowCallback(
                 const ::android::sp<::rockchip::hardware::rockit::V1_0::IRTNativeWindowCallback> &callback);
@@ -151,14 +159,20 @@ protected:
     destroyRockitMetaDataFunc   *mDestroyMetaDataFunc;
 
 public:
-    sp<IRockitPlayerCallback>    mCallback;
+    sp<IRTPlayerCallback>        mPlayerCallback;
+    sp<IRTAudioSinkCallback>     mAudioSinkCallback;
     sp<IRTNativeWindowCallback>  mNativeWindowCallback;
+    RTPlayerCallback*            mRTPlayerCallback;
+    RTAudioSinkCallback*         mRTAudioSinkCallback;
+    RTNativeWindowCallback*      mRTNativeWindowCallback;
 };
 
-class RockitMsgCallback : public RTPlayerListener {
+class RTPlayerCallback : public RTPlayerListener {
 public:
-    RockitMsgCallback(sp<RockitPlayer> player);
+    RTPlayerCallback(sp<RockitPlayer> player);
+    virtual ~RTPlayerCallback();
     virtual void notify(INT32 msg, INT32 ext1, INT32 ext2, void* ptr);
+
 private:
     sp<RockitPlayer> mPlayer;
 };

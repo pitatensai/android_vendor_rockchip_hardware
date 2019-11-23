@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-#ifndef ROCKIT_HIDL_V1_0_UTILS_RTUTILS_H
-#define ROCKIT_HIDL_V1_0_UTILS_RTUTILS_H
+#ifndef ROCKIT_HIDL_V1_0_UTILS_ROCKITPLAYERSERVICE_H
+#define ROCKIT_HIDL_V1_0_UTILS_ROCKITPLAYERSERVICE_H
 
-#include <hidl/HidlSupport.h>
-#include <hidl/MQDescriptor.h>
+#include <rockchip/hardware/rockit/1.0/IRockitPlayer.h>
+#include <rockchip/hardware/rockit/1.0/IRockitPlayerService.h>
+
 #include <hidl/Status.h>
-
 #include <hwbinder/IBinder.h>
+#include <hwbinder/Parcel.h>
 
-#include <rockchip/hardware/rockit/1.0/types.h>
+#include <utils/threads.h>
+#include <utils/KeyedVector.h>
 
 namespace rockchip {
 namespace hardware {
@@ -38,11 +40,31 @@ using ::android::hardware::hidl_vec;
 using ::android::hardware::Return;
 using ::android::hardware::Void;
 using ::android::hardware::IBinder;
+using ::rockchip::hardware::rockit::V1_0::player_type;
+using ::rockchip::hardware::rockit::V1_0::IRockitPlayer;
+using ::rockchip::hardware::rockit::V1_0::Status;
 using ::android::sp;
 using ::android::wp;
+using namespace android;
 
-int toStatusT(Status status);
-hidl_vec<uint8_t> inHidlBytes(void const* l, size_t size);
+struct RockitPlayerService : public IRockitPlayerService {
+    RockitPlayerService();
+
+    Return<void>            createPlayer(createPlayer_cb _hidl_cb);
+    Return<Status>          destroyPlayer(const sp<IRockitPlayer>& player);
+
+protected:
+    virtual ~RockitPlayerService();
+
+private:
+    void                    addClient(const sp<IRockitPlayer>& client);
+    void                    removeClient(const sp<IRockitPlayer>& client);
+
+    mutable Mutex                       mLock;
+    SortedVector<sp<IRockitPlayer>>     mClients;
+};
+
+
 
 }  // namespace utils
 }  // namespace V1_0
@@ -50,4 +72,4 @@ hidl_vec<uint8_t> inHidlBytes(void const* l, size_t size);
 }  // namespace hardware
 }  // namespace rockchip
 
-#endif  // ROCKIT_HIDL_V1_0_UTILS_RTUTILS_H
+#endif  // ROCKIT_HIDL_V1_0_UTILS_ROCKITPLAYERSERVICE_H

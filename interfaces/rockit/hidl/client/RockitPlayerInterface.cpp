@@ -16,8 +16,6 @@
 
 //#define LOG_NDEBUG 0
 #define LOG_TAG "RockitPlayerClient"
-#include "include/RockitPlayerInterface.h"
-#include "include/RockitPlayerManager.h"
 
 #include <utils/Log.h>
 #include <dlfcn.h>
@@ -27,15 +25,12 @@
 #include <media/MediaHTTPService.h>
 #include <media/mediaplayer.h>
 #include <gui/Surface.h>
-#include <system/window.h>
-#include <string.h>
 
+#include "include/RockitPlayerManager.h"
+#include "include/RockitPlayerInterface.h"
 
-#undef ALOGV
-#define ALOGV ALOGE
-
-namespace android {
-
+namespace android
+{
 
 RockitPlayerClient::RockitPlayerClient() {
     mPlayer = (void*)new RockitPlayerManager(this);
@@ -334,5 +329,3 @@ sp<MediaPlayerBase::AudioSink> RockitPlayerClient::getAudioSink() {
 }
 
 }  // namespace android
-
-

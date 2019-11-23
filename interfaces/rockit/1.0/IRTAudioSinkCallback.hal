@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Author: rimon.xu@rock-chips.com
- *   Date: 2019/06/04
  */
 
 package rockchip.hardware.rockit@1.0;
@@ -24,8 +22,7 @@ import rockchip.hardware.rockit@1.0::types;
 /**
  * Entry point for Rockit HAL.
  */
-interface IRockitPlayerCallback {
-    sendEvent(int32_t msg, int32_t ext1, int32_t ext2);
+interface IRTAudioSinkCallback {
 
     /**
      * AudioSink callback API

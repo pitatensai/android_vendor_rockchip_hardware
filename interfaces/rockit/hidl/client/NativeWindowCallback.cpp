@@ -113,14 +113,15 @@ int32_t drm_fd_to_handle(
 RTNativeWindow::RTNativeWindow()
         : mDrmFd(-1) {
     ALOGV("RTNativeWindow::RTNativeWindow");
-    if (mDrmFd <= 0) {
+    if (mDrmFd < 0) {
         mDrmFd = drm_open();
     }
 }
 
 RTNativeWindow::~RTNativeWindow() {
+    mWindow = NULL;
     ALOGV("RTNativeWindow::~RTNativeWindow");
-    if (mDrmFd > 0) {
+    if (mDrmFd >= 0) {
         drm_close(mDrmFd);
         mDrmFd = -1;
     }
@@ -172,7 +173,7 @@ Return<Status> RTNativeWindow::apiConnect(
     ANativeWindow          *window = NULL;
     hidl_vec<uint8_t>       hidlWindow(nativeWindow);
 
-    if (mDrmFd <= 0) {
+    if (mDrmFd < 0) {
         mDrmFd = drm_open();
     }
 
@@ -190,7 +191,7 @@ Return<Status> RTNativeWindow::apiDisconnect(
     ANativeWindow          *window = NULL;
     hidl_vec<uint8_t>       hidlWindow(nativeWindow);
 
-    if (mDrmFd > 0) {
+    if (mDrmFd >= 0) {
         drm_close(mDrmFd);
         mDrmFd = -1;
     }
@@ -287,7 +288,7 @@ Return<void> RTNativeWindow::dequeueBufferAndWait(
         uint32_t handle = 0;
         struct drm_gem_flink req;
 
-        if (mDrmFd) {
+        if (mDrmFd >= 0) {
             drm_fd_to_handle(mDrmFd, priv_hnd.share_fd, &handle, 0);
             /* Flink creates a name for the object and returns it to the
              * application. This name can be used by other applications to gain

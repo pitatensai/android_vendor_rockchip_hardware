@@ -17,8 +17,6 @@
 #ifndef ROCKIT_HIDL_V1_0_UTILS_AUDIOSINKCALLBACK_H
 #define ROCKIT_HIDL_V1_0_UTILS_AUDIOSINKCALLBACK_H
 
-#include <rockchip/hardware/rockit/1.0/IRockitPlayerCallback.h>
-
 #include <hidl/Status.h>
 #include <hwbinder/IBinder.h>
 #include "rockit/hidl/1.0/RTAudioSinkCBInterface.h"
@@ -43,6 +41,7 @@ using ::android::wp;
 class RTAudioSinkCallback : public RTAudioSinkCBInterface {
 public:
     RTAudioSinkCallback(sp<RockitPlayer> player);
+    virtual ~RTAudioSinkCallback();
     virtual int open(void *param);
     virtual int start();
     virtual int pause();

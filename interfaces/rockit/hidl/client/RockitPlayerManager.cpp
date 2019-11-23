@@ -14,12 +14,8 @@
  * limitations under the License.
  */
 
-#define LOG_NDEBUG 0
+//#define LOG_NDEBUG 0
 #define LOG_TAG "RockitPlayerManager"
-
-#include "include/RockitPlayerManager.h"
-#include "include/RockitPlayerCallback.h"
-#include "include/NativeWindowCallback.h"
 
 #include <utils/Log.h>
 #include <dlfcn.h>
@@ -29,16 +25,17 @@
 #include <media/MediaHTTPService.h>
 #include <media/mediaplayer.h>
 #include <gui/Surface.h>
-#include <system/window.h>
-#include <string.h>
 
+#include "include/RockitPlayerManager.h"
+#include "include/RockitPlayerCallback.h"
+#include "include/AudioSinkCallback.h"
+#include "include/NativeWindowCallback.h"
 
 #include <rockchip/hardware/rockit/1.0/IRockitPlayer.h>
-#include <rockchip/hardware/rockit/1.0/IRockitPlayerCallback.h>
+#include <rockchip/hardware/rockit/1.0/IRTPlayerCallback.h>
+#include <rockchip/hardware/rockit/1.0/IRockitPlayerService.h>
+#include <rockchip/hardware/rockit/1.0/IRTAudioSinkCallback.h>
 #include <rockchip/hardware/rockit/1.0/IRTNativeWindowCallback.h>
-
-#undef ALOGV
-#define ALOGV ALOGE
 
 namespace android {
 
@@ -51,9 +48,10 @@ using ::android::hardware::Return;
 using ::android::hardware::Void;
 using ::android::sp;
 
-typedef struct ROCKIT_PLAYER_CTX {
+typedef struct RockitPlayerCtx_t {
      sp<IRockitPlayer>              mPlayer;
-     sp<RockitPlayerCallback>       mCallback;
+     sp<RockitPlayerCallback>       mPlayerCallback;
+     sp<RTAudioSink>                mAudioSinkCallback;
      sp<RTNativeWindow>             mNativeWindowCallback;
      sp<MediaPlayerBase::AudioSink> mAudioSink;
      sp<ANativeWindow>              mNativeWindow;
@@ -78,39 +76,59 @@ RockitPlayerManager::RockitPlayerManager(android::MediaPlayerInterface* mediaPla
     mCtx = (RockitPlayerCtx *)malloc(sizeof(RockitPlayerCtx));
     memset(mCtx, 0, sizeof(RockitPlayerCtx));
     initPlayer(mediaPlayer);
+    ALOGV("RockitPlayerManager(%p) construct", this);
 }
 
 RockitPlayerManager::~RockitPlayerManager() {
-    ALOGE("~RockitPlayer");
     reset();
     deinitPlayer();
     if (mCtx) {
-        delete mCtx;
+        free(mCtx);
+        mCtx = NULL;
     }
+    ALOGV("~RockitPlayerManager(%p) destruct", this);
 }
 
 void RockitPlayerManager::initPlayer(android::MediaPlayerInterface* mediaPlayer) {
-    sp<IRockitPlayer> player = IRockitPlayer::getService();
-    if (player != NULL) {
-        mCtx->mPlayer = player;
-        mCtx->mPlayer->createPlayer();
-        mCtx->mCallback = new RockitPlayerCallback(mediaPlayer);
-        status_t err = toStatusT(mCtx->mPlayer->registerCallback(mCtx->mCallback));
+    sp<IRockitPlayerService> playerService = IRockitPlayerService::getService();
+    if (playerService.get() != NULL) {
+        status_t fnStatus;
+        playerService->createPlayer(
+                [&fnStatus, this](
+                        Status status, const sp<IRockitPlayer>& player) {
+                    fnStatus = toStatusT(status);
+                    mCtx->mPlayer = player;
+                });
+        mCtx->mPlayerCallback = new RockitPlayerCallback(mediaPlayer);
+        mCtx->mAudioSinkCallback = new RTAudioSink(mediaPlayer);
         mCtx->mNativeWindowCallback = new RTNativeWindow();
+        status_t err = toStatusT(mCtx->mPlayer->registerPlayerCallback(mCtx->mPlayerCallback));
+        err = toStatusT(mCtx->mPlayer->registerAudioSinkCallback(mCtx->mAudioSinkCallback));
         err = toStatusT(mCtx->mPlayer->registerNativeWindowCallback(mCtx->mNativeWindowCallback));
-        ALOGE("createPlayer err: %d", err);
+        ALOGV("create rockit player(%p) completed(err: %d)", mCtx->mPlayer.get(), err);
     } else {
-        ALOGE("create player from rockit service failed!");
+        ALOGE("failed to get rockit service");
     }
 }
 
 void RockitPlayerManager::deinitPlayer() {
-    ALOGE("deinitPlayer");
-    mCtx->mPlayer->destroyPlayer();
+    sp<IRockitPlayerService> playerService = IRockitPlayerService::getService();
+    if (mCtx->mPlayer.get()) {
+        playerService->destroyPlayer(mCtx->mPlayer);
+    }
+
+    mCtx->mPlayerCallback = NULL;
+    mCtx->mNativeWindowCallback = NULL;
+    mCtx->mAudioSinkCallback = NULL;
+    mCtx->mPlayer = NULL;
+    mCtx->mAudioSink = NULL;
+    mCtx->mNativeWindow = NULL;
+
+    ALOGV("deinitPlayer(%p) ok", mCtx->mPlayer.get());
 }
 
 status_t RockitPlayerManager::initCheck() {
-    ALOGV("initCheck");
+    ALOGV("initCheck thiz(%p) player(%p)", this, mCtx->mPlayer.get());
     return toStatusT(mCtx->mPlayer->initCheck());
 }
 

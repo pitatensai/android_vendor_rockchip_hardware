@@ -15,7 +15,7 @@
  */
 
 //#define LOG_NDEBUG 0
-#define LOG_TAG "Rockit-Player"
+#define LOG_TAG "RTUtils"
 
 #include <dlfcn.h>
 #include <android-base/logging.h>

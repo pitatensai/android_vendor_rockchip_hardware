@@ -15,15 +15,13 @@
 ** limitations under the License.
 */
 
-#ifndef _ROCKITPLAYERCALLBACK_H_
-#define _ROCKITPLAYERCALLBACK_H_
+#ifndef _ROCKITPLAYER_CALLBACK_H_
+#define _ROCKITPLAYER_CALLBACK_H_
 
-#include <hidl/MQDescriptor.h>
 #include <hidl/Status.h>
 #include <media/MediaPlayerInterface.h>
-#include <system/audio-base.h>
 
-#include <rockchip/hardware/rockit/1.0/IRockitPlayerCallback.h>
+#include <rockchip/hardware/rockit/1.0/IRTPlayerCallback.h>
 
 namespace rockchip {
 namespace hardware {
@@ -39,37 +37,12 @@ using ::android::hardware::Void;
 using ::android::sp;
 using ::android::wp;
 
-class RockitPlayerCallback : public IRockitPlayerCallback {
+class RockitPlayerCallback : public IRTPlayerCallback {
 public:
     RockitPlayerCallback(android::MediaPlayerInterface *player);
     virtual ~RockitPlayerCallback();
 
-    virtual Return<void> sendEvent(int32_t msg, int32_t ext1, int32_t ext2);
-
-    virtual Return<Status> open(uint32_t sampleRate,
-                        int32_t  channelCount,
-                        int32_t  channelMask,
-                        int32_t  format,
-                        int32_t  bufferCount,
-                        /* Bytes callback, TODO */
-                        hidl_vec<uint8_t> const& cookie,
-                        int32_t  flags,
-                        hidl_vec<uint8_t> const& offloadInfo,
-                        bool     doNotReconnect,
-                        uint32_t suggestedFrameCount);
-
-    virtual Return<Status> start();
-    virtual Return<Status> pause();
-    virtual Return<Status> stop();
-    virtual Return<Status> flush();
-    virtual Return<Status> close();
-
-    virtual Return<int32_t> write(hidl_vec<uint8_t> const& buffer, int32_t size);
-    virtual Return<uint32_t> latency();
-    virtual Return<int32_t> frameSize();
-    virtual Return<void>    getPlaybackRate(getPlaybackRate_cb _hidl_cb);
-    virtual Return<Status>  setPlaybackRate(const ::rockchip::hardware::rockit::V1_0::AudioPlaybackRate& param);
-    virtual Return<int64_t> getPlayedOutDurationUs();
+    virtual Return<void>        sendEvent(int32_t msg, int32_t ext1, int32_t ext2);
 
 private:
     android::MediaPlayerInterface *mPlayer;
@@ -81,4 +54,4 @@ private:
 }  // namespace hardware
 
 
-#endif  // _ROCKITPLAYERCALLBACK_H_
+#endif  // _ROCKITPLAYER_CALLBACK_H_

@@ -36,10 +36,16 @@ RTAudioSinkCallback::RTAudioSinkCallback(sp<RockitPlayer> player) {
     mPlayer = player;
 }
 
+RTAudioSinkCallback::~RTAudioSinkCallback() {
+    mPlayer.clear();
+    mPlayer = NULL;
+    ALOGV("~RTAudioSinkCallback(%p) destruct", this);
+}
+
 int RTAudioSinkCallback::open(void *param) {
     ALOGV("RTAudioSinkCallback open in");
     RTAudioSinkParam *audioSinkParam = (RTAudioSinkParam *)param;
-    return toStatusT(mPlayer->mCallback->open(audioSinkParam->sampleRate,
+    return toStatusT(mPlayer->mAudioSinkCallback->open(audioSinkParam->sampleRate,
                                    audioSinkParam->channels,
                                    audioSinkParam->channelMask,
                                    (int32_t)audioSinkParam->format,
@@ -53,51 +59,51 @@ int RTAudioSinkCallback::open(void *param) {
 
 int RTAudioSinkCallback::start() {
     ALOGV("RTAudioSinkCallback start in");
-    return toStatusT(mPlayer->mCallback->start());
+    return toStatusT(mPlayer->mAudioSinkCallback->start());
 }
 
 int RTAudioSinkCallback::pause() {
     ALOGV("RTAudioSinkCallback pause in");
-    return toStatusT(mPlayer->mCallback->pause());
+    return toStatusT(mPlayer->mAudioSinkCallback->pause());
 }
 
 int RTAudioSinkCallback::stop() {
     ALOGV("RTAudioSinkCallback stop in");
-    return toStatusT(mPlayer->mCallback->stop());
+    return toStatusT(mPlayer->mAudioSinkCallback->stop());
 }
 
 int RTAudioSinkCallback::flush() {
     ALOGV("RTAudioSinkCallback flush in");
-    return toStatusT(mPlayer->mCallback->flush());
+    return toStatusT(mPlayer->mAudioSinkCallback->flush());
 }
 
 int RTAudioSinkCallback::close() {
     ALOGV("RTAudioSinkCallback close in");
-    return toStatusT(mPlayer->mCallback->close());
+    return toStatusT(mPlayer->mAudioSinkCallback->close());
 }
 
 uint32_t RTAudioSinkCallback::latency() {
     ALOGV("RTAudioSinkCallback latency in");
-    return mPlayer->mCallback->latency();
+    return mPlayer->mAudioSinkCallback->latency();
 }
 
 int32_t RTAudioSinkCallback::write(const void *buffer, int32_t size) {
     ALOGV("RTAudioSinkCallback write audio(data=%p, size=%d)", buffer, size);
     int32_t consumedLen = 0;
     hidl_vec<uint8_t> bufParam = inHidlBytes(buffer, size);
-    consumedLen = mPlayer->mCallback->write(bufParam, size);
+    consumedLen = mPlayer->mAudioSinkCallback->write(bufParam, size);
     return consumedLen;
 }
 
 int32_t RTAudioSinkCallback::frameSize() {
     ALOGV("RTAudioSinkCallback frameSize in");
-    return mPlayer->mCallback->frameSize();
+    return mPlayer->mAudioSinkCallback->frameSize();
 }
 
 int32_t RTAudioSinkCallback::getPlaybackRate(RTAudioPlaybackRate *param) {
     ALOGV("RTAudioSinkCallback start in");
     status_t fnStatus;
-    mPlayer->mCallback->getPlaybackRate(
+    mPlayer->mAudioSinkCallback->getPlaybackRate(
             [&fnStatus, param](
                     Status status, ::rockchip::hardware::rockit::V1_0::AudioPlaybackRate outRate) {
                 fnStatus = toStatusT(status);
@@ -117,12 +123,12 @@ int32_t RTAudioSinkCallback::setPlaybackRate(RTAudioPlaybackRate param) {
     rate.mPitch = param.mPitch;
     rate.mStretchMode = (int32_t)param.mStretchMode;
     rate.mFallbackMode = (int32_t)param.mFallbackMode;
-    return toStatusT(mPlayer->mCallback->setPlaybackRate(rate));
+    return toStatusT(mPlayer->mAudioSinkCallback->setPlaybackRate(rate));
 }
 
 int64_t RTAudioSinkCallback::getPlayedOutDurationUs() {
     ALOGV("getPlayedOutDurationUs in");
-    return mPlayer->mCallback->getPlayedOutDurationUs();
+    return mPlayer->mAudioSinkCallback->getPlayedOutDurationUs();
 }
 
 }  // namespace utils

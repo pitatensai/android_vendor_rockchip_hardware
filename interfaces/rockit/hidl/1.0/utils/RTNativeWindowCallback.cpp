@@ -37,7 +37,9 @@ RTNativeWindowCallback::RTNativeWindowCallback(sp<RockitPlayer> player) {
 }
 
 RTNativeWindowCallback::~RTNativeWindowCallback() {
-
+    mPlayer.clear();
+    mPlayer = NULL;
+    ALOGV("~RTNativeWindowCallback(%p) destruct", this);
 }
 
 int RTNativeWindowCallback::setCrop(

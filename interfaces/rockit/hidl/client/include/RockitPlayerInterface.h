@@ -15,64 +15,51 @@
 ** limitations under the License.
 */
 
-#ifndef ANDROID_ROCKITPLAYER_H
-#define ANDROID_ROCKITPLAYER_H
-
-#include <hidl/MQDescriptor.h>
-#include <hidl/Status.h>
+#ifndef ANDROID_ROCKITPLAYER_INTERFACE_H
+#define ANDROID_ROCKITPLAYER_INTERFACE_H
 
 #include <media/MediaPlayerInterface.h>
 
 namespace android {
-
-using ::android::hardware::hidl_array;
-using ::android::hardware::hidl_memory;
-using ::android::hardware::hidl_string;
-using ::android::hardware::hidl_vec;
-using ::android::hardware::Return;
-using ::android::hardware::Void;
-using ::android::sp;
 
 class RockitPlayerClient : public MediaPlayerInterface {
 public:
     RockitPlayerClient();
     virtual ~RockitPlayerClient();
 
-    virtual status_t initCheck();
+    virtual status_t    initCheck();
+    virtual status_t    setUID(uid_t uid);
 
-    virtual status_t setUID(uid_t uid);
-
-    virtual status_t setDataSource(
-                        const sp<IMediaHTTPService> &httpService,
-                        const char *url,
-                        const KeyedVector<String8, String8> *headers = NULL) ;
-    virtual status_t setDataSource(int fd, int64_t offset, int64_t length);
-    virtual status_t setDataSource(const sp<IStreamSource> &source);
-    virtual status_t setVideoSurfaceTexture(
-            const sp<IGraphicBufferProducer> &bufferProducer);
-    virtual status_t prepare();
-    virtual status_t prepareAsync();
-    virtual status_t start();
-    virtual status_t stop();
-    virtual status_t pause();
-    virtual bool     isPlaying();
-    virtual status_t seekTo(int msec, MediaPlayerSeekMode mode = MediaPlayerSeekMode::SEEK_PREVIOUS_SYNC);
-    virtual status_t getCurrentPosition(int *msec);
-    virtual status_t getDuration(int *msec);
-    virtual status_t reset();
-    virtual status_t setLooping(int loop);
+    virtual status_t    setDataSource(
+                            const sp<IMediaHTTPService> &httpService,
+                            const char *url,
+                            const KeyedVector<String8, String8> *headers = NULL) ;
+    virtual status_t    setDataSource(int fd, int64_t offset, int64_t length);
+    virtual status_t    setDataSource(const sp<IStreamSource> &source);
+    virtual status_t    setVideoSurfaceTexture(
+                            const sp<IGraphicBufferProducer> &bufferProducer);
+    virtual status_t    prepare();
+    virtual status_t    prepareAsync();
+    virtual status_t    start();
+    virtual status_t    stop();
+    virtual status_t    pause();
+    virtual bool        isPlaying();
+    virtual status_t    seekTo(int msec, MediaPlayerSeekMode mode = MediaPlayerSeekMode::SEEK_PREVIOUS_SYNC);
+    virtual status_t    getCurrentPosition(int *msec);
+    virtual status_t    getDuration(int *msec);
+    virtual status_t    reset();
+    virtual status_t    setLooping(int loop);
     virtual player_type playerType();
-    virtual status_t invoke(const Parcel &request, Parcel *reply);
-    virtual void     setAudioSink(const sp<AudioSink> &audioSink);
-    virtual status_t setParameter(int key, const Parcel &request);
-    virtual status_t getParameter(int key, Parcel *reply);
+    virtual status_t    invoke(const Parcel &request, Parcel *reply);
+    virtual void        setAudioSink(const sp<AudioSink> &audioSink);
+    virtual status_t    setParameter(int key, const Parcel &request);
+    virtual status_t    getParameter(int key, Parcel *reply);
 
-    virtual status_t getMetadata(const media::Metadata::Filter& ids, Parcel *records);
+    virtual status_t    getMetadata(const media::Metadata::Filter& ids, Parcel *records);
+    virtual status_t    getPlaybackSettings(AudioPlaybackRate* rate);
+    virtual status_t    setPlaybackSettings(const AudioPlaybackRate& rate);
 
-    virtual status_t getPlaybackSettings(AudioPlaybackRate* rate);
-    virtual status_t setPlaybackSettings(const AudioPlaybackRate& rate);
-
-    virtual status_t dump(int fd, const Vector<String16> &args) const;
+    virtual status_t    dump(int fd, const Vector<String16> &args) const;
 
     sp<MediaPlayerBase::AudioSink> getAudioSink();
 
@@ -80,12 +67,10 @@ private:
     RockitPlayerClient(const RockitPlayerClient &);
     RockitPlayerClient &operator=(const RockitPlayerClient &);
 
-
-
 private:
-    void *mPlayer;
+    void    *mPlayer;
 };
 
 }  // namespace android
 
-#endif  // ANDROID_ROCKITPLAYER_H
+#endif  // ANDROID_ROCKITPLAYER_INTERFACE_H

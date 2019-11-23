@@ -17,7 +17,7 @@
 #define LOG_NDEBUG 0
 #define LOG_TAG "rockchip.hardware.rockit@1.0-service"
 
-#include "RockitPlayer.h"
+#include "RockitPlayerService.h"
 
 #include <hidl/HidlTransportSupport.h>
 #include <binder/ProcessState.h>
@@ -48,21 +48,21 @@ int main(int /* argc */, char** /* argv */) {
     // TODO(): rockit service.
     {
         using namespace ::rockchip::hardware::rockit::V1_0;
-        android::sp<IRockitPlayer> player;
+        android::sp<IRockitPlayerService> player;
         android::status_t status;
 
         // Vendor's TODO: Replace this with
-        ALOGD("Instantiating Rockit player service...");
-        player = new utils::RockitPlayer();
+        ALOGD("Instantiating rockit player service...");
+        player = new utils::RockitPlayerService();
 
         if (player == nullptr) {
-            ALOGE("Cannot create Rockit player service.");
+            ALOGE("Cannot create rockit player service.");
         } else {
             status = player->registerAsService();
             if (status != android::OK) {
-                ALOGE("Cannot register Rockit player service.");
+                ALOGE("Cannot register rockit player service.");
             } else {
-                ALOGI("Rockit player service created.");
+                ALOGI("rockit player service created.");
             }
         }
     }
