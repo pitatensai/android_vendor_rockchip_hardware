@@ -124,6 +124,12 @@ struct InvokeTrackInfo {
     string mine;
 };
 
+struct NotifyTimeTextInfo {
+    int64_t startTime;
+    int32_t size;
+    string  text;
+};
+
 typedef vec<InvokeTrackInfo> TracksInfoVec;
 
 struct RockitInvokeReply {

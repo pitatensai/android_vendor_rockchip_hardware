@@ -24,7 +24,7 @@ import rockchip.hardware.rockit@1.0::types;
  */
 interface IRTPlayerCallback {
 
-    sendEvent(int32_t msg, int32_t ext1, int32_t ext2);
+    sendEvent(int32_t msg, int32_t ext1, int32_t ext2, NotifyTimeTextInfo textinfo);
 
 };
 

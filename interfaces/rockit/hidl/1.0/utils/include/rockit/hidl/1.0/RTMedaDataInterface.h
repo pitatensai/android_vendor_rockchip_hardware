@@ -72,6 +72,11 @@ enum {
     kUserInvokeTracksCount     = MKTAG('t', 'c', 'n', 't'),
     kUserInvokeTracksInfor     = MKTAG('t', 'i', 'n', 'f'),
     kUserInvokeTrackIdx        = MKTAG('t', 'i', 'd', 'x'),
+
+    /* user's notify command*/
+    kUserNotifyPts             = MKTAG('u', 'n', 'p', 's'),
+    kUserNotifySize            = MKTAG('u', 'n', 's', 'e'),
+    kUserNotifyData            = MKTAG('u', 'n', 'd', 'a'),
 };
 
 #ifdef  __cplusplus

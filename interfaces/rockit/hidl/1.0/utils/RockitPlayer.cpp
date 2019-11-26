@@ -39,8 +39,10 @@ using namespace ::android::hardware;
 #define CREATE_PLAYER_FUNC_NAME         "createRockitPlayer"
 #define DESTROY_PLAYER_FUNC_NAME        "destroyRockitPlayer"
 
-#define CREATE_METADATA_FUNC_NAME        "createRockitMetaData"
-#define DESTROY_METADATA_FUNC_NAME       "destroyRockitMetaData"
+#define CREATE_METADATA_FUNC_NAME       "createRockitMetaData"
+#define DESTROY_METADATA_FUNC_NAME      "destroyRockitMetaData"
+
+#define RT_TEXT_NOTIFY_MSG              99
 
 enum MediaTrackType {
     MEDIA_TRACK_TYPE_UNKNOWN = 0,
@@ -417,10 +419,17 @@ RTPlayerCallback::~RTPlayerCallback() {
 }
 
 
-void RTPlayerCallback::notify(INT32 msg, INT32 ext1, INT32 ext2, void* ptr) {
-    (void)ptr;
-    ALOGV("notify msg: %d, ext1: %d, ext2: %d", msg, ext1, ext2);
-    mPlayer->mPlayerCallback->sendEvent(msg, ext1, ext2);
+void RTPlayerCallback::notify(INT32 msg, INT32 ext1, INT32 ext2, void* obj) {
+    NotifyTimeTextInfo notifyInfo;
+    if (obj != NULL && msg == RT_TEXT_NOTIFY_MSG) {
+        const char *text;
+        RtMetaDataInterface* textInfo = (RtMetaDataInterface*)obj;
+        textInfo->findInt64(kUserNotifyPts, &notifyInfo.startTime);
+        textInfo->findInt32(kUserNotifySize, &notifyInfo.size);
+        textInfo->findCString(kUserNotifyData, &text);
+        notifyInfo.text      = hidl_string(text);
+    }
+    mPlayer->mPlayerCallback->sendEvent(msg, ext1, ext2, notifyInfo);
 }
 
 }  // namespace utils

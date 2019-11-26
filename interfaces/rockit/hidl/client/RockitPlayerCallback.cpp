@@ -21,10 +21,17 @@
 #include "include/RockitPlayerCallback.h"
 #include "include/RockitPlayerInterface.h"
 
+#define RT_KEY_LOCAL_SETTING                 102
+#define RT_KEY_START_TIME                    7
+#define RT_KEY_STRUCT_TEXT                   16
+#define RT_TEXT_NOTIFY_MSG                   99
+
 namespace rockchip {
 namespace hardware {
 namespace rockit {
 namespace V1_0 {
+
+using ::android::Parcel;
 
 RockitPlayerCallback::RockitPlayerCallback(android::MediaPlayerInterface *player) {
     mPlayer = player;
@@ -35,8 +42,21 @@ RockitPlayerCallback::~RockitPlayerCallback() {
     ALOGV("~RockitPlayerCallback(%p) destruct", this);
 }
 
-Return<void> RockitPlayerCallback::sendEvent(int32_t msg, int32_t ext1, int32_t ext2) {
-    mPlayer->sendEvent(msg, ext1, ext2);
+
+Return<void> RockitPlayerCallback::sendEvent(int32_t msg, int32_t ext1, int32_t ext2, const NotifyTimeTextInfo & obj) {
+    if(msg == RT_TEXT_NOTIFY_MSG) {
+        Parcel txtParcel;
+        txtParcel.writeInt32(RT_KEY_LOCAL_SETTING);
+        txtParcel.writeInt32(RT_KEY_START_TIME);
+        txtParcel.writeInt32((int32_t)obj.startTime);
+        txtParcel.writeInt32(RT_KEY_STRUCT_TEXT);
+        txtParcel.writeInt32(obj.size);
+        txtParcel.writeByteArray(obj.size, (const uint8_t *)obj.text.c_str());
+        mPlayer->sendEvent(msg, ext1, ext2, &txtParcel);
+        txtParcel.freeData();
+    } else {
+        mPlayer->sendEvent(msg, ext1, ext2, NULL);
+    }
     return Void();
 }
 

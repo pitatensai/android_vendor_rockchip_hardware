@@ -53,7 +53,6 @@ typedef void   destroyRockitPlayerFunc(void **player);
 typedef void * createRockitMetaDataFunc();
 typedef void   destroyRockitMetaDataFunc(void **meta);
 
-
 /* must keep sync with mediaplayer.h and rockit */
 enum InvokeIds {
     INVOKE_ID_GET_TRACK_INFO = 1,
@@ -89,6 +88,12 @@ typedef struct _RockitTrackInfo {
     char lang[4];
     char mine[16];
 } RockitTrackInfor;
+
+typedef struct _RockitTextInfo {
+    int64_t startTime;
+    int     size;
+    char*   text;
+} RockitTextInfor;
 
 class RTAudioSinkCallback;
 class RTNativeWindowCallback;
@@ -171,7 +176,7 @@ class RTPlayerCallback : public RTPlayerListener {
 public:
     RTPlayerCallback(sp<RockitPlayer> player);
     virtual ~RTPlayerCallback();
-    virtual void notify(INT32 msg, INT32 ext1, INT32 ext2, void* ptr);
+    virtual void notify(INT32 msg, INT32 ext1, INT32 ext2, void* obj);
 
 private:
     sp<RockitPlayer> mPlayer;

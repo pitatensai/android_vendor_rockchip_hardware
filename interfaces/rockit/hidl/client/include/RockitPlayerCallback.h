@@ -36,13 +36,14 @@ using ::android::hardware::Return;
 using ::android::hardware::Void;
 using ::android::sp;
 using ::android::wp;
+using ::rockchip::hardware::rockit::V1_0::NotifyTimeTextInfo;
 
 class RockitPlayerCallback : public IRTPlayerCallback {
 public:
     RockitPlayerCallback(android::MediaPlayerInterface *player);
     virtual ~RockitPlayerCallback();
 
-    virtual Return<void>        sendEvent(int32_t msg, int32_t ext1, int32_t ext2);
+    virtual Return<void> sendEvent(int32_t msg, int32_t ext1, int32_t ext2,  const NotifyTimeTextInfo &obj);
 
 private:
     android::MediaPlayerInterface *mPlayer;
