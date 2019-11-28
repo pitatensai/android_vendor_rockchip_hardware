@@ -4,3 +4,4 @@ d8b3408771e3adad3046e363a1e828819971fe97b2131e0c39decd454e2cc36b rockchip.hardwa
 # hash for rockit
 4f4249fa8fa627fe978bc353d89ef6622b81eaac181f23f604028596df0d5d5c rockchip.hardware.rockit@1.0::types
 724b195a8d10ddba73cd37ee9701b0f02701293fa2c3c45e15a7739b41665fbb rockchip.hardware.rockit@1.0::IRockitPlayer
+9b9fc6e0bdbe48dd158daf73ebb8266ecb20ff5d5f7b3d7939549b8f85fa4963 rockchip.hardware.rockit@1.0::IRockitPlayerService
