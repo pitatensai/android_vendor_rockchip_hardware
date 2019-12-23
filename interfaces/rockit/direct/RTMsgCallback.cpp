@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#define LOG_NDEBUG 0
+//#define LOG_NDEBUG 0
 
 #define LOG_TAG "RTMsgCallback"
 
@@ -23,11 +23,12 @@
 namespace android {
 
 RTMsgCallback::RTMsgCallback(android::MediaPlayerInterface *player) {
+    ALOGD("RTMsgCallback(%p) construct", this);
     mPlayer = player;
 }
 
 RTMsgCallback::~RTMsgCallback() {
-
+    ALOGD("~RTMsgCallback(%p) construct", this);
 }
 
 void RTMsgCallback::notify(int32_t msg, int64_t ext1, int64_t ext2, void* ptr) {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#define LOG_NDEBUG 0
+//#define LOG_NDEBUG 0
 
 #define LOG_TAG "RTAudioSinkCallback"
 
@@ -28,15 +28,15 @@ RTAudioSinkCallback::RTAudioSinkCallback(const sp<MediaPlayerBase::AudioSink> &a
     mAudioSink = audioSink;
     memset(&mAudioSinkParam, 0, sizeof(RTAudioSinkParam));
     mAudioChannelMode = RT_AUDIO_CHANNEL_STEREO;
-    ALOGE("RTAudioSinkCallback");
+    ALOGD("RTAudioSinkCallback(%p) construct", this);
 }
 
 RTAudioSinkCallback::~RTAudioSinkCallback() {
-    ALOGE("~RTAudioSinkCallback");
+    ALOGD("~RTAudioSinkCallback(%p) destruct", this);
 }
 
 int32_t RTAudioSinkCallback::open(void *param) {
-    ALOGD("RTAudioSinkCallback open in");
+    ALOGV("RTAudioSinkCallback open in");
     memcpy(&mAudioSinkParam, param, sizeof(RTAudioSinkParam));
 
     return (int32_t)mAudioSink->open(mAudioSinkParam.sampleRate,
@@ -53,41 +53,41 @@ int32_t RTAudioSinkCallback::open(void *param) {
 }
 
 int32_t RTAudioSinkCallback::start() {
-    ALOGD("RTAudioSinkCallback start in");
+    ALOGV("RTAudioSinkCallback start in");
     return (int32_t)mAudioSink->start();
 }
 
 int32_t RTAudioSinkCallback::pause() {
-    ALOGD("RTAudioSinkCallback pause in");
+    ALOGV("RTAudioSinkCallback pause in");
     mAudioSink->pause();
     return 0;
 }
 
 int32_t RTAudioSinkCallback::stop() {
-    ALOGD("RTAudioSinkCallback stop in");
+    ALOGV("RTAudioSinkCallback stop in");
     mAudioSink->stop();
     return 0;
 }
 
 int32_t RTAudioSinkCallback::flush() {
-    ALOGD("RTAudioSinkCallback flush in");
+    ALOGV("RTAudioSinkCallback flush in");
     mAudioSink->flush();
     return 0;
 }
 
 int32_t RTAudioSinkCallback::close() {
-    ALOGD("RTAudioSinkCallback close in");
+    ALOGV("RTAudioSinkCallback close in");
     mAudioSink->close();
     return 0;
 }
 
 int32_t RTAudioSinkCallback::latency() {
-    ALOGD("RTAudioSinkCallback latency in");
+    ALOGV("RTAudioSinkCallback latency in");
     return mAudioSink->latency();
 }
 
 int32_t RTAudioSinkCallback::write(const void *buffer, int32_t size) {
-    ALOGD("RTAudioSinkCallback write audio(data=%p, size=%d)", buffer, size);
+    ALOGV("RTAudioSinkCallback write audio(data=%p, size=%d)", buffer, size);
     int32_t consumedLen = 0;
     short *pcmData = (short *)buffer;
     short *pcmDataEnd = (short *)buffer + (size/2);
@@ -111,12 +111,12 @@ int32_t RTAudioSinkCallback::write(const void *buffer, int32_t size) {
 }
 
 int32_t RTAudioSinkCallback::frameSize() {
-    ALOGD("RTAudioSinkCallback frameSize in");
+    ALOGV("RTAudioSinkCallback frameSize in");
     return mAudioSink->frameSize();
 }
 
 int32_t RTAudioSinkCallback::getPlaybackRate(RTAudioPlaybackRate *param) {
-    ALOGD("RTAudioSinkCallback start in");
+    ALOGV("RTAudioSinkCallback start in");
     android::AudioPlaybackRate rate;
     mAudioSink->getPlaybackRate(&rate);
     param->mSpeed = rate.mSpeed;
@@ -127,7 +127,7 @@ int32_t RTAudioSinkCallback::getPlaybackRate(RTAudioPlaybackRate *param) {
 }
 
 int32_t RTAudioSinkCallback::setPlaybackRate(RTAudioPlaybackRate param) {
-    ALOGD("RTAudioSinkCallback start in");
+    ALOGV("RTAudioSinkCallback start in");
     AudioPlaybackRate rate;
     rate.mSpeed = param.mSpeed;
     rate.mPitch = param.mPitch;
@@ -137,7 +137,7 @@ int32_t RTAudioSinkCallback::setPlaybackRate(RTAudioPlaybackRate param) {
 }
 
 int64_t RTAudioSinkCallback::getPlayedOutDurationUs() {
-    ALOGD("getPlayedOutDurationUs in");
+    ALOGV("getPlayedOutDurationUs in");
     return mAudioSink->getPlayedOutDurationUs(systemTime(SYSTEM_TIME_MONOTONIC) / 1000ll);
 }
 

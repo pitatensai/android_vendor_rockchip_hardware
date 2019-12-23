@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#define LOG_NDEBUG 0
+//#define LOG_NDEBUG 0
 #define LOG_TAG "RTNativeWindowCallback"
 
 #include <gralloc_priv_omx.h>
@@ -29,10 +29,11 @@
 using namespace ::android;
 
 RTNativeWindowCallback::RTNativeWindowCallback() {
+    ALOGD("RTNativeWindowCallback(%p) construct", this);
 }
 
 RTNativeWindowCallback::~RTNativeWindowCallback() {
-
+    ALOGD("~RTNativeWindowCallback(%p) construct", this);
 }
 
 int RTNativeWindowCallback::setCrop(
@@ -41,7 +42,7 @@ int RTNativeWindowCallback::setCrop(
         int32_t top,
         int32_t right,
         int32_t bottom) {
-        ALOGD("%s %d in", __FUNCTION__, __LINE__);
+        ALOGV("%s %d in", __FUNCTION__, __LINE__);
         android_native_rect_t crop;
 
         crop.left = left;
@@ -52,34 +53,34 @@ int RTNativeWindowCallback::setCrop(
 }
 
 int RTNativeWindowCallback::setBufferCount(void *nativeWindow, int32_t bufferCount) {
-    ALOGD("%s %d in", __FUNCTION__, __LINE__);
+    ALOGV("%s %d in", __FUNCTION__, __LINE__);
     return native_window_set_buffer_count((ANativeWindow *)nativeWindow, bufferCount);
 }
 
 int RTNativeWindowCallback::connect(void *nativeWindow, int32_t mode) {
-    ALOGD("%s %d in", __FUNCTION__, __LINE__);
+    ALOGV("%s %d in", __FUNCTION__, __LINE__);
     (void)mode;
     return native_window_api_connect((ANativeWindow *)nativeWindow, NATIVE_WINDOW_API_MEDIA);
 }
 
 int RTNativeWindowCallback::disconnect(void *nativeWindow, int32_t mode) {
-    ALOGD("%s %d in", __FUNCTION__, __LINE__);
+    ALOGV("%s %d in", __FUNCTION__, __LINE__);
     (void)mode;
     return native_window_api_disconnect((ANativeWindow *)nativeWindow, NATIVE_WINDOW_API_MEDIA);;
 }
 
 int RTNativeWindowCallback::setScalingMode(void *nativeWindow, int32_t mode) {
-    ALOGD("%s %d in", __FUNCTION__, __LINE__);
+    ALOGV("%s %d in", __FUNCTION__, __LINE__);
     return native_window_set_scaling_mode((ANativeWindow *)nativeWindow, mode);;
 }
 
 int RTNativeWindowCallback::setUsage(void *nativeWindow, int32_t usage) {
-    ALOGD("%s %d in", __FUNCTION__, __LINE__);
+    ALOGV("%s %d in", __FUNCTION__, __LINE__);
     return native_window_set_usage((ANativeWindow *)nativeWindow,  usage);;
 }
 
 int RTNativeWindowCallback::query(void *nativeWindow, int32_t cmd, int32_t *param) {
-    ALOGD("%s %d in", __FUNCTION__, __LINE__);
+    ALOGV("%s %d in", __FUNCTION__, __LINE__);
     return ((ANativeWindow*)nativeWindow)->query((ANativeWindow *)nativeWindow, cmd, param);
 
 }
@@ -89,7 +90,7 @@ int RTNativeWindowCallback::setBufferGeometry(
         int32_t width,
         int32_t height,
         int32_t format) {
-    ALOGD("%s %d in", __FUNCTION__, __LINE__);
+    ALOGV("%s %d in", __FUNCTION__, __LINE__);
     native_window_set_buffers_dimensions((ANativeWindow *)nativeWindow, width, height);
     native_window_set_buffers_format((ANativeWindow *)nativeWindow, format);
 
@@ -97,7 +98,7 @@ int RTNativeWindowCallback::setBufferGeometry(
 }
 
 int RTNativeWindowCallback::dequeueBufferAndWait(void *nativeWindow, RTNativeWindowBufferInfo *info) {
-    ALOGD("%s %d in", __FUNCTION__, __LINE__);
+    ALOGV("%s %d in", __FUNCTION__, __LINE__);
     int                         ret = 0;
     ANativeWindowBuffer*        buf;
     gralloc_private_handle_t    priv_hnd;
@@ -115,12 +116,12 @@ int RTNativeWindowCallback::dequeueBufferAndWait(void *nativeWindow, RTNativeWin
 }
 
 int RTNativeWindowCallback::queueBuffer(void *nativeWindow, void *buf, int32_t fence) {
-    ALOGD("%s %d in", __FUNCTION__, __LINE__);
+    ALOGV("%s %d in", __FUNCTION__, __LINE__);
     return ((ANativeWindow*)nativeWindow)->queueBuffer((ANativeWindow *)nativeWindow, (ANativeWindowBuffer *)buf, fence);
 }
 
 int RTNativeWindowCallback::dequeueBuffer(void *nativeWindow, void **buf) {
-    ALOGD("%s %d in", __FUNCTION__, __LINE__);
+    ALOGV("%s %d in", __FUNCTION__, __LINE__);
     (void)nativeWindow;
     (void)buf;
     return 0;
@@ -128,19 +129,19 @@ int RTNativeWindowCallback::dequeueBuffer(void *nativeWindow, void **buf) {
 }
 
 int RTNativeWindowCallback::cancelBuffer(void *nativeWindow, void *buf, int32_t fence) {
-    ALOGD("%s %d in", __FUNCTION__, __LINE__);
+    ALOGV("%s %d in", __FUNCTION__, __LINE__);
     return ((ANativeWindow*)nativeWindow)->cancelBuffer((ANativeWindow *)nativeWindow, (ANativeWindowBuffer *)buf, fence);
 }
 
 int RTNativeWindowCallback::setSwapInterval(void *nativeWindow, int32_t isInterval) {
-    ALOGD("%s %d in", __FUNCTION__, __LINE__);
+    ALOGV("%s %d in", __FUNCTION__, __LINE__);
     (void)nativeWindow;
     (void)isInterval;
     return 0;
 }
 
 int RTNativeWindowCallback::setDataSpace(void *nativeWindow, int32_t dataSpace) {
-    ALOGD("%s %d in", __FUNCTION__, __LINE__);
+    ALOGV("%s %d in", __FUNCTION__, __LINE__);
     return native_window_set_buffers_data_space((ANativeWindow *)nativeWindow,(android_dataspace_t)dataSpace);
 }
 

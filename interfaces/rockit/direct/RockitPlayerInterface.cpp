@@ -30,19 +30,16 @@
 #include <string.h>
 
 
-#undef ALOGV
-#define ALOGV ALOGE
-
 namespace android {
 
 
 RockitPlayerClient::RockitPlayerClient() {
-    ALOGE("RockitPlayerClient");
+    ALOGD("RockitPlayerClient(%p) construct", this);
     mPlayer = (void*)new RockitPlayerManager(this);
 }
 
 RockitPlayerClient::~RockitPlayerClient() {
-    ALOGE("~RockitPlayerClient");
+    ALOGD("~RockitPlayerClient(%p) destruct", this);
     RockitPlayerManager* player = (RockitPlayerManager*)mPlayer;
     if (player != NULL) {
         delete player;

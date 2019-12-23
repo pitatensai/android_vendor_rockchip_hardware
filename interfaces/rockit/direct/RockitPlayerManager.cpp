@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#define LOG_NDEBUG 0
+//#define LOG_NDEBUG 0
 #define LOG_TAG "RockitPlayerManager"
 
 #include "RockitPlayerManager.h"
@@ -33,9 +33,6 @@
 #include "RTMsgCallback.h"
 #include "RTAudioSinkCallback.h"
 
-#undef ALOGV
-#define ALOGV ALOGE
-
 namespace android {
 
 using ::android::sp;
@@ -53,10 +50,11 @@ RockitPlayerManager::RockitPlayerManager(android::MediaPlayerInterface* mediaPla
     mCtx = (RockitPlayerCtx *)malloc(sizeof(RockitPlayerCtx));
     memset(mCtx, 0, sizeof(RockitPlayerCtx));
     initPlayer(mediaPlayer);
+    ALOGD("RockitPlayerManager(%p) construct", this);
 }
 
 RockitPlayerManager::~RockitPlayerManager() {
-    ALOGE("~RockitPlayer");
+    ALOGD("~RockitPlayerManager(%p) destruct", this);
     reset();
     deinitPlayer();
     if (mCtx) {
@@ -71,11 +69,11 @@ void RockitPlayerManager::initPlayer(android::MediaPlayerInterface* mediaPlayer)
     mCtx->mPlayer->setNativeWindowCallback((void *)mCtx->mNativeWindowCB);
     mCtx->mMsgCallback = new RTMsgCallback(mediaPlayer);
     mCtx->mPlayer->setListener(mCtx->mMsgCallback);
-    ALOGE("createPlayer err: %d nativeWindowCB: %p", err, mCtx->mNativeWindowCB);
+    ALOGD("createPlayer err: %d nativeWindowCB: %p", err, mCtx->mNativeWindowCB);
 }
 
 void RockitPlayerManager::deinitPlayer() {
-    ALOGE("deinitPlayer");
+    ALOGD("deinitPlayer");
     if (mCtx->mNativeWindowCB != NULL) {
         delete mCtx->mNativeWindowCB;
     }
@@ -264,7 +262,7 @@ status_t RockitPlayerManager::getUriFromFd(int fd, char **uri) {
 
     path = uriTmp;
     ptr  = path.string();
-    ALOGE("getUriFromFd ptr: %p, uriSize: %zu, uri: %s *uri: %p uri: %p",
+    ALOGD("getUriFromFd ptr: %p, uriSize: %zu, uri: %s *uri: %p uri: %p",
            ptr, uriSize, ptr, *uri, uri);
     memcpy(*uri, ptr, uriSize);
 

@@ -20,7 +20,7 @@
 
 #include <sys/types.h>
 #include <inttypes.h>
-#include "include/RTMedaDataInterface.h"
+#include "RTMedaDataInterface.h"
 
 typedef int32_t rt_status;
 

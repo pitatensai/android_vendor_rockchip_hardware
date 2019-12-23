@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#define LOG_NDEBUG 0
+//#define LOG_NDEBUG 0
 #define LOG_TAG "RockitPlayer"
 
 #include <stdint.h>
@@ -88,11 +88,11 @@ RockitPlayer::RockitPlayer()
                 mDestroyPlayerFunc(NULL),
                 mCreateMetaDataFunc(NULL),
                 mDestroyMetaDataFunc(NULL) {
-    ALOGE("RockitPlayer");
+    ALOGD("RockitPlayer(%p) construct", this);
 }
 
 RockitPlayer::~RockitPlayer() {
-    ALOGE("~RockitPlayer");
+    ALOGD("~RockitPlayer(%p) destruct", this);
 }
 
 status_t RockitPlayer::createPlayer() {
@@ -166,7 +166,7 @@ rt_status RockitPlayer::setNativeWindow(const void *window) {
 }
 
 rt_status RockitPlayer::start() {
-    ALOGE("%s %d in", __FUNCTION__, __LINE__);
+    ALOGD("%s %d in", __FUNCTION__, __LINE__);
     mPlayerImpl->start();
     return OK;
 }
@@ -201,7 +201,7 @@ bool RockitPlayer::isPlaying() {
 }
 
 rt_status RockitPlayer::seekTo(int32_t msec, uint32_t mode) {
-    ALOGD("seekto time: %d, mode: %d", msec, mode);
+    ALOGD("seekTo time: %d, mode: %d", msec, mode);
     mPlayerImpl->seekTo(((int64_t)msec) * 1000);
     return OK;
 }
