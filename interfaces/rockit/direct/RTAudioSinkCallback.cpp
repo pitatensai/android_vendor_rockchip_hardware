@@ -1,0 +1,169 @@
+/*
+ * Copyright 2018 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#define LOG_NDEBUG 0
+
+#define LOG_TAG "RTAudioSinkCallback"
+
+#include <dlfcn.h>
+#include "RockitPlayer.h"
+#include "RTAudioSinkCallback.h"
+
+using namespace ::android;
+
+RTAudioSinkCallback::RTAudioSinkCallback(const sp<MediaPlayerBase::AudioSink> &audioSink) {
+    mAudioSink = audioSink;
+    memset(&mAudioSinkParam, 0, sizeof(RTAudioSinkParam));
+    mAudioChannelMode = RT_AUDIO_CHANNEL_STEREO;
+    ALOGE("RTAudioSinkCallback");
+}
+
+RTAudioSinkCallback::~RTAudioSinkCallback() {
+    ALOGE("~RTAudioSinkCallback");
+}
+
+int32_t RTAudioSinkCallback::open(void *param) {
+    ALOGD("RTAudioSinkCallback open in");
+    memcpy(&mAudioSinkParam, param, sizeof(RTAudioSinkParam));
+
+    return (int32_t)mAudioSink->open(mAudioSinkParam.sampleRate,
+                                     mAudioSinkParam.channels,
+                                     mAudioSinkParam.channelMask,
+                                     (audio_format_t)mAudioSinkParam.format,
+                                     -1, /* buffer count */
+                                     NULL, /* callback */
+                                     NULL, /* cookie */
+                                     (audio_output_flags_t)mAudioSinkParam.flags,
+                                     NULL, /* offload info */
+                                     false, /* do not reconnect */
+                                     0 /* suggested frame count */);
+}
+
+int32_t RTAudioSinkCallback::start() {
+    ALOGD("RTAudioSinkCallback start in");
+    return (int32_t)mAudioSink->start();
+}
+
+int32_t RTAudioSinkCallback::pause() {
+    ALOGD("RTAudioSinkCallback pause in");
+    mAudioSink->pause();
+    return 0;
+}
+
+int32_t RTAudioSinkCallback::stop() {
+    ALOGD("RTAudioSinkCallback stop in");
+    mAudioSink->stop();
+    return 0;
+}
+
+int32_t RTAudioSinkCallback::flush() {
+    ALOGD("RTAudioSinkCallback flush in");
+    mAudioSink->flush();
+    return 0;
+}
+
+int32_t RTAudioSinkCallback::close() {
+    ALOGD("RTAudioSinkCallback close in");
+    mAudioSink->close();
+    return 0;
+}
+
+int32_t RTAudioSinkCallback::latency() {
+    ALOGD("RTAudioSinkCallback latency in");
+    return mAudioSink->latency();
+}
+
+int32_t RTAudioSinkCallback::write(const void *buffer, int32_t size) {
+    ALOGD("RTAudioSinkCallback write audio(data=%p, size=%d)", buffer, size);
+    int32_t consumedLen = 0;
+    short *pcmData = (short *)buffer;
+    short *pcmDataEnd = (short *)buffer + (size/2);
+
+    if ((mAudioSinkParam.flags == RT_AUDIO_OUTPUT_FLAG_NONE)
+        && mAudioSinkParam.channels == 2) {
+        if (mAudioChannelMode == RT_AUDIO_CHANNEL_LEFT) {
+            while(pcmData < pcmDataEnd) {
+                *(pcmData + 1) =  *pcmData;
+                pcmData = pcmData + 2;
+            }
+        } else if (mAudioChannelMode == RT_AUDIO_CHANNEL_RIGHT) {
+            while(pcmData < pcmDataEnd) {
+                *pcmData =  *(pcmData + 1);
+                pcmData = pcmData + 2;
+            }
+        }
+    }
+    consumedLen = mAudioSink->write(buffer, size);
+    return consumedLen;
+}
+
+int32_t RTAudioSinkCallback::frameSize() {
+    ALOGD("RTAudioSinkCallback frameSize in");
+    return mAudioSink->frameSize();
+}
+
+int32_t RTAudioSinkCallback::getPlaybackRate(RTAudioPlaybackRate *param) {
+    ALOGD("RTAudioSinkCallback start in");
+    android::AudioPlaybackRate rate;
+    mAudioSink->getPlaybackRate(&rate);
+    param->mSpeed = rate.mSpeed;
+    param->mPitch = rate.mPitch;
+    param->mStretchMode = (RTAudioTimestretchStretchMode)rate.mStretchMode;
+    param->mFallbackMode = (RTAudioTimestretchFallbackMode)rate.mFallbackMode;
+    return 0;
+}
+
+int32_t RTAudioSinkCallback::setPlaybackRate(RTAudioPlaybackRate param) {
+    ALOGD("RTAudioSinkCallback start in");
+    AudioPlaybackRate rate;
+    rate.mSpeed = param.mSpeed;
+    rate.mPitch = param.mPitch;
+    rate.mStretchMode = (AudioTimestretchStretchMode)param.mStretchMode;
+    rate.mFallbackMode = (AudioTimestretchFallbackMode)param.mFallbackMode;
+    return mAudioSink->setPlaybackRate(rate);
+}
+
+int64_t RTAudioSinkCallback::getPlayedOutDurationUs() {
+    ALOGD("getPlayedOutDurationUs in");
+    return mAudioSink->getPlayedOutDurationUs(systemTime(SYSTEM_TIME_MONOTONIC) / 1000ll);
+}
+
+int32_t RTAudioSinkCallback::setAudioChannel(RTAudioChannel mode) {
+    mAudioChannelMode = mode;
+    return 0;
+}
+
+#if 0
+void RTAudioSinkCallback::AudioCallback(int event, void *user, void *info)
+{
+   ((RTAudioSinkCallback *)user)->AudioCallback(event, info);
+}
+void RTAudioSinkCallback::AudioCallback(int event, void *info)
+{
+
+    if (event != AudioTrack::EVENT_MORE_DATA) {
+        if (event == AudioTrack::EVENT_UNDERRUN)
+            ALOGE("Audio Track underrun event, no more enough data!");
+        return;
+    }
+
+    AudioTrack::Buffer *buffer = (AudioTrack::Buffer *)info;
+    size_t numBytesWritten = fillBuffer(buffer->raw, buffer->size);
+    buffer->size = numBytesWritten;
+
+}
+#endif
+

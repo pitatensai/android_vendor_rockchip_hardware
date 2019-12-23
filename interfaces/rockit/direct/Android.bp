@@ -1,0 +1,43 @@
+cc_library_shared {
+
+    srcs: [
+        "RockitPlayer.cpp",
+        "RockitPlayerInterface.cpp",
+        "RockitPlayerManager.cpp",
+        "RTNativeWindowCallback.cpp",
+        "RTMsgCallback.cpp",
+        "RTAudioSinkCallback.cpp",
+    ],
+
+    shared_libs: [
+        "libbase",
+        "libutils",
+        "libcutils",
+        "libGLESv1_CM",
+        "libui",
+        "libgui",
+        "liblog",
+        "libmedia",
+        "libgralloc_priv",
+        "libaudioclient",
+        "libbinder"
+    ],
+
+    include_dirs: [
+        "frameworks/av/include",
+        "system/media/audio/include",
+        "hardware/rockchip/librkvpu/omx_get_gralloc_private"
+    ],
+
+    local_include_dirs: ["include"],
+
+    cflags: [
+        "-Werror",
+        "-Wno-error=deprecated-declarations",
+        "-Wall",
+    ],
+
+    name: "librockit_interface",
+
+}
+
