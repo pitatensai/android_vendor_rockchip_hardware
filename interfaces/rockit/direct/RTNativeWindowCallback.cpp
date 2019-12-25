@@ -25,15 +25,90 @@
 #include <gui/Surface.h>
 #include "RTNativeWindowCallback.h"
 #include "RockitPlayer.h"
+#include "drm.h"
+#include "drm_mode.h"
 
 using namespace ::android;
 
-RTNativeWindowCallback::RTNativeWindowCallback() {
+static const char *DRM_DEV_NAME = "/dev/dri/card0";
+
+int32_t drm_open() {
+    int32_t fd = open(DRM_DEV_NAME, O_RDWR);
+    if (fd < 0) {
+        ALOGE("open %s failed!\n", DRM_DEV_NAME);
+    }
+
+    return fd;
+}
+
+int32_t drm_close(int32_t fd) {
+    int32_t ret = close(fd);
+    if (ret < 0) {
+        return -errno;
+    }
+
+    return ret;
+}
+
+int drm_ioctl(int32_t fd, int32_t req, void* arg) {
+    int32_t ret = ioctl(fd, req, arg);
+    if (ret < 0) {
+        ALOGE("fd: %d ioctl %x failed with code %d: %s\n", fd, req, ret, strerror(errno));
+        return -errno;
+    }
+    return ret;
+}
+
+int drm_get_phys(int fd, uint32_t handle, uint32_t *phy, uint32_t heaps) {
+    (void)heaps;
+    struct drm_rockchip_gem_phys phys_arg;
+    phys_arg.handle = handle;
+    int ret = drm_ioctl(fd, DRM_IOCTL_ROCKCHIP_GEM_GET_PHYS, &phys_arg);
+    if (ret < 0) {
+        ALOGE("drm_get_phys failed ret = %d", ret);
+        return ret;
+    } else {
+        *phy = phys_arg.phy_addr;
+    }
+    return ret;
+}
+
+int32_t drm_fd_to_handle(
+        int32_t fd,
+        int32_t map_fd,
+        uint32_t *handle,
+        uint32_t flags) {
+    int32_t ret;
+    struct drm_prime_handle dph;
+
+    dph.fd = map_fd;
+    dph.flags = flags;
+
+    ret = drm_ioctl(fd, DRM_IOCTL_PRIME_FD_TO_HANDLE, &dph);
+    if (ret < 0) {
+        ALOGE("DRM_IOCTL_PRIME_FD_TO_HANDLE failed!");
+        return ret;
+    }
+
+    *handle = dph.handle;
+
+    return ret;
+}
+
+RTNativeWindowCallback::RTNativeWindowCallback()
+    : mDrmFd(-1) {
     ALOGD("RTNativeWindowCallback(%p) construct", this);
+    if (mDrmFd < 0) {
+        mDrmFd = drm_open();
+    }
 }
 
 RTNativeWindowCallback::~RTNativeWindowCallback() {
     ALOGD("~RTNativeWindowCallback(%p) construct", this);
+    if (mDrmFd >= 0) {
+        drm_close(mDrmFd);
+        mDrmFd = -1;
+    }
 }
 
 int RTNativeWindowCallback::setCrop(
@@ -106,10 +181,22 @@ int RTNativeWindowCallback::dequeueBufferAndWait(void *nativeWindow, RTNativeWin
 
     sp<android::GraphicBuffer> graphicBuffer(android::GraphicBuffer::from(buf));
     Rockchip_get_gralloc_private((uint32_t *)buf->handle, &priv_hnd);
+    uint32_t handle = 0;
+    struct drm_gem_flink req;
+
+    if (mDrmFd >= 0) {
+        drm_fd_to_handle(mDrmFd, priv_hnd.share_fd, &handle, 0);
+        /* Flink creates a name for the object and returns it to the
+         * application. This name can be used by other applications to gain
+         * access to the same object. */
+        req.handle = handle,
+        drm_ioctl(mDrmFd, DRM_IOCTL_GEM_FLINK, &req);
+    }
 
     info->graphicBuffer = (void *)(graphicBuffer.get());
     info->window = (void*)buf->handle;
     info->windowBuf = buf;
+    info->name = req.name;
     info->dupFd = priv_hnd.share_fd;
 
     return ret;

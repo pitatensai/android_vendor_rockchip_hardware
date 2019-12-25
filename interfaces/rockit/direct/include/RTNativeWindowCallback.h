@@ -60,6 +60,9 @@ class RTNativeWindowCallback : public RTNativeWindowCBInterface {
     virtual int setSwapInterval(void *nativeWindow, int32_t isInterval);
 
     virtual int setDataSpace(void *nativeWindow, int32_t dataSpace);
+
+ private:
+    int32_t mDrmFd;
 };
 }
 #endif  // ROCKIT_DIRECT_RTNATIVEWINDOWCALLBACK_H_

@@ -26,7 +26,8 @@ cc_library_shared {
     include_dirs: [
         "frameworks/av/include",
         "system/media/audio/include",
-        "hardware/rockchip/librkvpu/omx_get_gralloc_private"
+        "hardware/rockchip/librkvpu/omx_get_gralloc_private",
+        "vendor/rockchip/hardware/interfaces/rockit/hidl/client"
     ],
 
     local_include_dirs: ["include"],
