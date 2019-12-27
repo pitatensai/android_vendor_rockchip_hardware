@@ -34,6 +34,7 @@
 #include <sys/stat.h>
 
 #define RK_AUDIO_SETTING_CONFIG_FILE "/data/vendor/audio/rt_audio_config.xml"
+#define RK_AUDIO_SETTING_TEMP_FILE "/data/vendor/audio/rt_audio_config_temp.xml"
 #define RK_AUDIO_SETTING_VENDOR_FILE "/vendor/etc/rt_audio_config.xml"
 
 #ifndef ARRAY_SIZE
@@ -68,13 +69,18 @@ RkAudioSettingManager::~RkAudioSettingManager() {
 
 void RkAudioSettingManager::init() {
     if (access(RK_AUDIO_SETTING_CONFIG_FILE, F_OK) < 0) {
+
+        if (access(RK_AUDIO_SETTING_TEMP_FILE, F_OK) >= 0) {
+            remove(RK_AUDIO_SETTING_TEMP_FILE);
+        }
+
         if (access(RK_AUDIO_SETTING_VENDOR_FILE, F_OK) == 0) {
             FILE *fin = NULL;
             FILE *fout = NULL;
             char *buff = NULL;
             buff = (char *)malloc(1024);
             fin = fopen(RK_AUDIO_SETTING_VENDOR_FILE, "r");
-            fout = fopen(RK_AUDIO_SETTING_CONFIG_FILE, "w");
+            fout = fopen(RK_AUDIO_SETTING_TEMP_FILE, "w");
 
             if (fout == NULL) {
                 ALOGD("%s,%d, fdout is open fail",__FUNCTION__,__LINE__);
@@ -110,6 +116,14 @@ void RkAudioSettingManager::init() {
                 free(buff);
                 buff = NULL;
             }
+
+            if (-1 == rename(RK_AUDIO_SETTING_TEMP_FILE, RK_AUDIO_SETTING_CONFIG_FILE)) {
+                ALOGW("rename config file failed");
+                remove(RK_AUDIO_SETTING_TEMP_FILE);
+            } else {
+                ALOGW("rename config file success");
+            }
+            sync();
         }
     }
     chmod(RK_AUDIO_SETTING_CONFIG_FILE, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
