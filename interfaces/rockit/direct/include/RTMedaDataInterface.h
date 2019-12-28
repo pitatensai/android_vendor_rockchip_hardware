@@ -75,6 +75,11 @@ enum {
     kUserInvokeVideoScallingMode  = MKTAG('v', 's', 'm', 'd'),
     kUserInvokeGetSelectTrack     = MKTAG('t', 's', 'l', 'e'),
     kUserInvokeGetSelectTrackIdx  = MKTAG('t', 'i', 'd', 'x'),
+
+    /* user's notify command*/
+    kUserNotifyPts                = MKTAG('u', 'n', 'p', 's'),
+    kUserNotifySize               = MKTAG('u', 'n', 's', 'e'),
+    kUserNotifyData               = MKTAG('u', 'n', 'd', 'a'),
 };
 
 #ifdef  __cplusplus

@@ -36,7 +36,7 @@ class  RTParcel;
 class RTPlayerListener {
  public:
     RTPlayerListener() {}
-    virtual void notify(INT32 msg, INT64 ext1, INT64 ext2, void* ptr) = 0;
+    virtual void notify(INT32 msg, INT32 ext1, INT32 ext2, void* ptr) = 0;
     virtual ~RTPlayerListener() {}
 };
 

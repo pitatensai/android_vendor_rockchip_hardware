@@ -27,7 +27,7 @@ class RTMsgCallback : public RTPlayerListener {
  public:
     RTMsgCallback(android::MediaPlayerInterface *player);
     virtual ~RTMsgCallback();
-    virtual void notify(int32_t msg, int64_t ext1, int64_t ext2, void* ptr);
+    virtual void notify(int32_t msg, int32_t ext1, int32_t ext2, void* ptr);
 private:
     MediaPlayerInterface *mPlayer;
 };

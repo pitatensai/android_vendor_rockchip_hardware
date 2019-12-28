@@ -77,8 +77,9 @@ typedef struct _RockitTrackInfo {
 
 
     /* language */
-    char lang[4];
+    char lang[16];
     char mine[16];
+    bool mProbeDisabled;
 } RockitTrackInfor;
 
 RockitPlayer::RockitPlayer()
