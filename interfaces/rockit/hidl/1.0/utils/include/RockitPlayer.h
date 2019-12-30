@@ -85,9 +85,12 @@ typedef struct _RockitTrackInfo {
 
 
     /* language */
-    char lang[16];
-    char mine[16];
-    bool mProbeDisabled;
+    char     lang[16];
+    char     mine[16];
+
+    bool     mProbeDisabled;
+    /* use reserved first when extend this structure */
+    int8_t   mReserved[64];
 } RockitTrackInfor;
 
 typedef struct _RockitTextInfo {

@@ -75,11 +75,13 @@ typedef struct _RockitTrackInfo {
 
     /* subtitle track features*/
 
-
     /* language */
-    char lang[16];
-    char mine[16];
-    bool mProbeDisabled;
+    char     lang[16];
+    char     mine[16];
+
+    bool     mProbeDisabled;
+    /* use reserved first when extend this structure */
+    int8_t   mReserved[64];
 } RockitTrackInfor;
 
 RockitPlayer::RockitPlayer()
