@@ -18,14 +18,14 @@
  * module: RkAudioSettingManager
  */
 
-#ifndef RKAUDIOSETTING_V1_0_DEFAULT_RKAUDIOSETTINGMANAGER_H
-#define RKAUDIOSETTING_V1_0_DEFAULT_RKAUDIOSETTINGMANAGER_H
-
+#ifndef RKSOUNDSETTING_RKAUDIOSETTINGMANAGER_H_
+#define RKSOUNDSETTING_RKAUDIOSETTINGMANAGER_H_
 
 #include "RkAudioSettingInterface.h"
-#include <tinyxml.h>
-#include <tinystr.h>
-#include <audio_hw_hdmi.h>
+#include "tinyxml.h"
+#include "audio_hw_hdmi.h"
+
+namespace android {
 
 enum {
     SELECT_DECODE     = 0,
@@ -76,5 +76,7 @@ class RkAudioSettingManager : public RkAudioSettingInterface {
     TiXmlDocument *XMLDoc;
 };
 
-#endif  //  RKAUDIOSETTING_V1_0_DEFAULT_RKAUDIOSETTINGMANAGER_H
+}
+
+#endif  //  RKSOUNDSETTING_RKAUDIOSETTINGMANAGER_H_
 

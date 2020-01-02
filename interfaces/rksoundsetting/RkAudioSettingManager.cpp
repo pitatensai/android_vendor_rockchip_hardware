@@ -32,10 +32,13 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include "tinystr.h"
 
-#define RK_AUDIO_SETTING_CONFIG_FILE "/data/vendor/audio/rt_audio_config.xml"
-#define RK_AUDIO_SETTING_TEMP_FILE "/data/vendor/audio/rt_audio_config_temp.xml"
-#define RK_AUDIO_SETTING_VENDOR_FILE "/vendor/etc/rt_audio_config.xml"
+namespace android {
+
+#define RK_AUDIO_SETTING_CONFIG_FILE "/data/system/rt_audio_config.xml"
+#define RK_AUDIO_SETTING_TEMP_FILE "/data/system/rt_audio_config_temp.xml"
+#define RK_AUDIO_SETTING_SYSTEM_FILE "/system/etc/rt_audio_config.xml"
 
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(x) (sizeof(x)/sizeof((x)[0]))
@@ -74,12 +77,12 @@ void RkAudioSettingManager::init() {
             remove(RK_AUDIO_SETTING_TEMP_FILE);
         }
 
-        if (access(RK_AUDIO_SETTING_VENDOR_FILE, F_OK) == 0) {
+        if (access(RK_AUDIO_SETTING_SYSTEM_FILE, F_OK) == 0) {
             FILE *fin = NULL;
             FILE *fout = NULL;
             char *buff = NULL;
             buff = (char *)malloc(1024);
-            fin = fopen(RK_AUDIO_SETTING_VENDOR_FILE, "r");
+            fin = fopen(RK_AUDIO_SETTING_SYSTEM_FILE, "r");
             fout = fopen(RK_AUDIO_SETTING_TEMP_FILE, "w");
 
             if (fout == NULL) {
@@ -135,6 +138,7 @@ void RkAudioSettingManager::init() {
         ALOGD("load XML file error(%s)", errorStr);
     }
 }
+
 int RkAudioSettingManager::getSelectValue(TiXmlElement *elem) {
     int ret = 0;
     TiXmlAttribute *mAttri = elem->FirstAttribute();
@@ -352,7 +356,8 @@ void RkAudioSettingManager::setDevices(int port, int cmd, const char *device) {
   */
 int RkAudioSettingManager::getSelect(int device) {
     int ret = 0;
-	if (device == 0) {
+    ALOGV("%s %d : device = %d",__FUNCTION__,__LINE__,device);
+    if (device == 0) {
         ret = getAudioSettingSelect(0);
     } else if (device == 1) {
         if (getAudioSettingSelect(1) == 1) {
@@ -376,6 +381,7 @@ int RkAudioSettingManager::getSelect(int device) {
  * 2->spdif passthrough
  */
 void RkAudioSettingManager::setSelect(int device) {
+    ALOGV("%s %d : device = %d",__FUNCTION__,__LINE__,device);
     if (device == 0) {
         setAudioSettingSelect(0);
     } else if(device == 1) {
@@ -383,10 +389,16 @@ void RkAudioSettingManager::setSelect(int device) {
         if (getAudioSettingBitstreamDevice("hdmi") != 1) {
             setAudioSettingBitstreamDevice("hdmi");
         }
+        if(getAudioSettingBitstreamFormat("MLP") == 0){
+            setAudioSettingBitstreamFormat(0, "MLP");
+        }
     } else if(device == 2) {
         setAudioSettingSelect(1);
         if (getAudioSettingBitstreamDevice("spdif") != 1) {
             setAudioSettingBitstreamDevice("spdif");
+        }
+        if(getAudioSettingBitstreamFormat("MLP") == 1){
+            setAudioSettingBitstreamFormat(1, "MLP");
         }
     } else {
         ALOGD("connot setSelect  error device = %d", device);
@@ -418,7 +430,7 @@ void RkAudioSettingManager::setFormat(int device, int close, const char *format)
 int RkAudioSettingManager::getFormat(int device, const char *format) {
     int ret = 0;
     ALOGV("%s,%d, device = %d format = %s", __FUNCTION__,__LINE__,device,format);
-	if (device == 0) {
+    if (device == 0) {
         ret = getAudioSettingDecodeFormat(format);
     } else if(device == 1) {
         ret = getAudioSettingBitstreamFormat(format);
@@ -450,7 +462,7 @@ void RkAudioSettingManager::setMode(int device, int mode) {
 int RkAudioSettingManager::getMode(int device) {
     ALOGV("%s,%d, device = %d", __FUNCTION__,__LINE__,device);
     int ret = 0;
-	if (device == 0) {
+    if (device == 0) {
         ret = getAudioSettingDecodeMode();
     } else if(device == 1) {
         ret = getAudioSettingBitStreamMode();
@@ -559,12 +571,12 @@ int RkAudioSettingManager::getAudioSettingDecodeMode() {
 
         if (mNodeMode->FirstChild()) {
             if(strcmp(mNodeMode->FirstChild()->Value(), "decode_pcm") == 0) {
-                ALOGD("test return getAudioSettingDecodeMode decode_pcm");
+                ALOGD("return getAudioSettingDecodeMode decode_pcm");
                 return 0;
             }
 
             if(strcmp(mNodeMode->FirstChild()->Value(), "multi_pcm") == 0) {
-                ALOGD("test return getAudioSettingDecodeMode multi_pcm");
+                ALOGD("return getAudioSettingDecodeMode multi_pcm");
                 return 1;
             }
         }
@@ -834,4 +846,6 @@ void RkAudioSettingManager::setAudioSettingBitstreamDevice(const char *device) {
         errorStr = XMLDoc->ErrorDesc();
         ALOGD("save XML file error(%s)", errorStr);
     }
+}
+
 }

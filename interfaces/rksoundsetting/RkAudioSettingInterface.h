@@ -17,13 +17,15 @@
  * date: 2019/11/19
  * module: RkAudioSettingInterface
  */
-#ifndef RKAUDIOSETTING_V1_0_DEFAULT_RKAUDIOSETTINGINTERFACE_H
-#define RKAUDIOSETTING_V1_0_DEFAULT_RKAUDIOSETTINGINTERFACE_H
+#ifndef RKSOUNDSETTING_RKAUDIOSETTINGINTERFACE_H_
+#define RKSOUNDSETTING_RKAUDIOSETTINGINTERFACE_H_
 
 #include <sys/types.h>
 #include <inttypes.h>
 #include <android-base/logging.h>
 #include <log/log.h>
+
+namespace android {
 
 class RkAudioSettingInterface {
  public:
@@ -39,4 +41,5 @@ class RkAudioSettingInterface {
     virtual void updataFormatForEdid() = 0;
 };
 
-#endif  //  RKAUDIOSETTING_V1_0_DEFAULT_RKAUDIOSETTINGINTERFACE_H
+}
+#endif  //  RKSOUNDSETTING_RKAUDIOSETTINGINTERFACE_H
