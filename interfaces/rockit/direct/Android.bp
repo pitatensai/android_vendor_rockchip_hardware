@@ -9,6 +9,9 @@ cc_library_shared {
         "RTAudioSinkCallback.cpp",
         "RTGraphicWindowApi.cpp",
         "RTSubtitleSink.cpp",
+        "sideband/RTSidebandWindow.cpp",
+        "sideband/DrmVopRender.cpp",
+        "sideband/MessageThread.cpp",
     ],
 
     shared_libs: [
@@ -23,14 +26,16 @@ cc_library_shared {
         "libmedia",
         "libgralloc_priv",
         "libaudioclient",
-        "libbinder"
+        "libdrm",
+        "libbinder",
+        "libhardware"
     ],
 
     include_dirs: [
         "frameworks/av/include",
         "system/media/audio/include",
         "hardware/rockchip/librkvpu/omx_get_gralloc_private",
-        "vendor/rockchip/hardware/interfaces/rockit/hidl/client"
+        "vendor/rockchip/hardware/interfaces/rockit/hidl/client",
     ],
 
     local_include_dirs: ["include"],

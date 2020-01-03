@@ -31,6 +31,21 @@ typedef struct RT_NATIVEWINDOW_BUFFER_INFO {
     void           *windowBuf;
 } RTNativeWindowBufferInfo;
 
+typedef struct RT_SIDEBAND_INFO {
+    int32_t structSize;
+    int32_t structVersion;
+    int32_t left;
+    int32_t top;
+    int32_t right;
+    int32_t bottom;
+    int32_t usage;
+    int32_t width;
+    int32_t height;
+    int32_t format;
+    int32_t dataSpace;
+    int32_t transform;
+} RTSidebandInfo;
+
 class RTNativeWindowCBInterface {
  public:
     virtual int setCrop(void *nativeWindow, int32_t left, int32_t top, int32_t right, int32_t bottom) = 0;
@@ -55,13 +70,19 @@ class RTNativeWindowCBInterface {
 
     virtual int dequeueBuffer(void *nativeWindow, void **buf) = 0;
 
-    virtual int cancelBuffer(void *nativeWindow, void *buf, int32_t fence) = 0;
+    virtual int allocateBuffer(void *nativeWindow, RTNativeWindowBufferInfo *info) = 0;
+
+    virtual int freeBuffer(void *nativeWindow, void *buf, int32_t fence) = 0;
+
+    virtual int remainBuffer(void *nativeWindow, void *buf, int32_t fence) = 0;
 
     virtual int setSwapInterval(void *nativeWindow, int32_t isInterval) = 0;
 
     virtual int setDataSpace(void *nativeWindow, int32_t dataSpace) = 0;
 
     virtual int setTransform(void *nativeWindow, int32_t transform) = 0;
+
+    virtual int setSidebandStream(void *nameWindow, RTSidebandInfo info) = 0;
 
     virtual ~RTNativeWindowCBInterface() {}
 };

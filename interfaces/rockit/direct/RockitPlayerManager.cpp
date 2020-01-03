@@ -43,7 +43,7 @@ typedef struct ROCKIT_PLAYER_CTX {
      sp<MediaPlayerBase::AudioSink> mAudioSink;
      RTAudioSinkCallback           *mAudioSinkCB;
      sp<ANativeWindow>              mNativeWindow;
-     RTNativeWindowCallback        *mNativeWindowCB;
+     RTNativeWindowCBInterface     *mNativeWindowCB;
      RTMsgCallback                 *mMsgCallback;
      RTSubteSink                   *mSubteSink;
 } RockitPlayerCtx;

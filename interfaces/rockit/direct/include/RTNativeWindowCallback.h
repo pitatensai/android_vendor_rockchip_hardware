@@ -27,7 +27,7 @@
 namespace android {
 
 class RockitPlayer;
-
+class RTSidebandWindow;
 class RTNativeWindowCallback : public RTNativeWindowCBInterface {
  public:
     RTNativeWindowCallback();
@@ -55,7 +55,11 @@ class RTNativeWindowCallback : public RTNativeWindowCBInterface {
 
     virtual int dequeueBuffer(void *nativeWindow, void **buf);
 
-    virtual int cancelBuffer(void *nativeWindow, void *buf, int32_t fence);
+    virtual int allocateBuffer(void *nativeWindow, RTNativeWindowBufferInfo *info);
+
+    virtual int freeBuffer(void *nativeWindow, void *buf, int32_t fence);
+
+    virtual int remainBuffer(void *nativeWindow, void *buf, int32_t fence);
 
     virtual int setSwapInterval(void *nativeWindow, int32_t isInterval);
 
@@ -63,9 +67,13 @@ class RTNativeWindowCallback : public RTNativeWindowCBInterface {
 
     virtual int setTransform(void *nativeWindow, int32_t transform);
 
+    virtual int setSidebandStream(void *nativeWindow, RTSidebandInfo info);
+
  private:
-    int32_t mDrmFd;
+    int32_t                 mDrmFd;
+    sp<RTSidebandWindow>    mSidebandWindow;
+    buffer_handle_t         mSidebandHandle;
+    int32_t                 mTunnel;
 };
 }
 #endif  // ROCKIT_DIRECT_RTNATIVEWINDOWCALLBACK_H_
-

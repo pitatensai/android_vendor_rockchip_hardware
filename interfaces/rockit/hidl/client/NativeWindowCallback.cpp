@@ -74,20 +74,6 @@ int drm_ioctl(int32_t fd, int32_t req, void* arg) {
     return ret;
 }
 
-int drm_get_phys(int fd, uint32_t handle, uint32_t *phy, uint32_t heaps) {
-    (void)heaps;
-    struct drm_rockchip_gem_phys phys_arg;
-    phys_arg.handle = handle;
-    int ret = drm_ioctl(fd, DRM_IOCTL_ROCKCHIP_GEM_GET_PHYS, &phys_arg);
-    if (ret < 0) {
-        ALOGE("drm_get_phys failed ret = %d", ret);
-        return ret;
-    } else {
-        *phy = phys_arg.phy_addr;
-    }
-    return ret;
-}
-
 int32_t drm_fd_to_handle(
         int32_t fd,
         int32_t map_fd,
