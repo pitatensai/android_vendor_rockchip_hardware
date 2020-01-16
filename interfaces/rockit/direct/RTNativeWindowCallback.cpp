@@ -59,6 +59,13 @@ int drm_ioctl(int32_t fd, int32_t req, void* arg) {
     return ret;
 }
 
+int drm_free(int fd, uint32_t handle) {
+    struct drm_mode_destroy_dumb data = {
+        .handle = handle,
+    };
+    return drm_ioctl(fd, DRM_IOCTL_MODE_DESTROY_DUMB, &data);
+}
+
 int drm_get_phys(int fd, uint32_t handle, uint32_t *phy, uint32_t heaps) {
     (void)heaps;
     struct drm_rockchip_gem_phys phys_arg;
@@ -97,7 +104,6 @@ int32_t drm_fd_to_handle(
 
 RTNativeWindowCallback::RTNativeWindowCallback()
     : mDrmFd(-1) {
-    ALOGD("RTNativeWindowCallback(%p) construct", this);
     if (mDrmFd < 0) {
         mDrmFd = drm_open();
     }
@@ -191,6 +197,10 @@ int RTNativeWindowCallback::dequeueBufferAndWait(void *nativeWindow, RTNativeWin
          * access to the same object. */
         req.handle = handle,
         drm_ioctl(mDrmFd, DRM_IOCTL_GEM_FLINK, &req);
+        /*
+         * must close handle here, or lead to drm buffer leak
+         */
+        drm_free(mDrmFd, handle);
     }
 
     info->graphicBuffer = (void *)(graphicBuffer.get());

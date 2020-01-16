@@ -5,3 +5,8 @@ d8b3408771e3adad3046e363a1e828819971fe97b2131e0c39decd454e2cc36b rockchip.hardwa
 a5c065e6c2f545fbd21ce8414f8ba45b7b0afd718feb0ecf494bcad5fd46d54f rockchip.hardware.rockit@1.0::types
 724b195a8d10ddba73cd37ee9701b0f02701293fa2c3c45e15a7739b41665fbb rockchip.hardware.rockit@1.0::IRockitPlayer
 9b9fc6e0bdbe48dd158daf73ebb8266ecb20ff5d5f7b3d7939549b8f85fa4963 rockchip.hardware.rockit@1.0::IRockitPlayerService
+
+# hash for rockit hw
+7ec35859f925e78fc39cb372e20f658a099c60f917c0d8c8786e6e594f5fc1d8 rockchip.hardware.rockit.hw@1.0::types
+d7ee7fadb16fdf521d533482de1b0d3ae25e4eec5cf765a35ddda1721a5134b3 rockchip.hardware.rockit.hw@1.0::IRockitHwInterface
+59ce21677e19ce15eb87e2a6f44a49bfbce8d123b050622c40407794a6ccabe1 rockchip.hardware.rockit.hw@1.0::IRockitHwService
