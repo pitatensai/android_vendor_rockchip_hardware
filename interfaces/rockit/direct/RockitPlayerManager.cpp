@@ -109,11 +109,7 @@ status_t RockitPlayerManager::setDataSource(
 // the method returns, if you want to keep it, dup it!
 status_t RockitPlayerManager::setDataSource(int fd, int64_t offset, int64_t length) {
     ALOGV("setDataSource(%d, %lld, %lld)", fd, (long long)offset, (long long)length);
-    char uri[1024] = {0};
-    ALOGE("setDataSource: %p", &uri);
-    char *params = uri;
-    getUriFromFd(fd, &params);
-    return (status_t)mCtx->mPlayer->setDataSource(NULL, uri, NULL);
+    return (status_t)mCtx->mPlayer->setDataSource(fd, offset, length);
 }
 
 status_t RockitPlayerManager::setDataSource(const sp<IStreamSource> &source) {

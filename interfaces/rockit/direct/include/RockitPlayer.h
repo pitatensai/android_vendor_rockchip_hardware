@@ -43,6 +43,10 @@ class RockitPlayer : public RefBase {
                 void *httpService,
                 const char *url,
                 void *headers);
+    virtual rt_status setDataSource(
+                int fd,
+                int64_t offset,
+                int64_t length);
     virtual rt_status setNativeWindow(
                 const void *window);
     virtual rt_status prepare();

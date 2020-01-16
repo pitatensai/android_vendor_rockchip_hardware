@@ -50,6 +50,7 @@ class RTNDKMediaPlayerInterface {
      */
     virtual rt_status setUID(uid_t uid) = 0;
     virtual rt_status setDataSource(const char *url, const char *headers) = 0;
+    virtual rt_status setDataSource(int fd, int64_t offset, int64_t length) = 0;
     virtual rt_status setLooping(int loop) = 0;
     virtual rt_status setListener(RTPlayerListener* listener) = 0;
 

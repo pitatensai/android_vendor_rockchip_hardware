@@ -163,6 +163,14 @@ status_t RockitPlayer::setDataSource(
     return OK;
 }
 
+rt_status RockitPlayer::setDataSource(
+            int fd,
+            int64_t offset,
+            int64_t length) {
+    ALOGV("setDataSource url: fd = %d", fd);
+    return mPlayerImpl->setDataSource(fd, offset, length);
+}
+
 rt_status RockitPlayer::setNativeWindow(const void *window) {
     ALOGV("setNativeWindow window: %p", window);
     return mPlayerImpl->setVideoSurface(const_cast<void *>(window));
