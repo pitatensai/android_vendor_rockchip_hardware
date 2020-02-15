@@ -566,7 +566,8 @@ int RockitHwMpi::dequeue(RockitHWBuffer& hwBuffer) {
     int  eos = 0;
     int  infochange = 0;
     uint64_t flags = 0;
-
+    int  fd = -1;
+    hwBuffer.bufferId = -1;
     param.pairs.resize(10);
     param.counter = 0;
 
@@ -605,9 +606,12 @@ int RockitHwMpi::dequeue(RockitHWBuffer& hwBuffer) {
             int index = findMppBuffer(hwBuffer.bufferId);
             if (index >= 0) {
                 ctx->mList.mMap[index].mSite = BUFFER_SITE_BY_ROCKIT;
+                fd = ctx->mList.mMap[index].mFd;
             }
         } else if (infochange || eos) {
             // info change or eos will reciver a empty buffer
+            hwBuffer.length = 0;
+            hwBuffer.bufferId = -1;
         } else {
             ALOGE("%s null mpp buffer...", __FUNCTION__);
             ret = -1;
@@ -643,16 +647,17 @@ int RockitHwMpi::dequeue(RockitHWBuffer& hwBuffer) {
 
         setValue(param, (uint32_t)RockitHWParamKey::HW_KEY_FLAGS, flags);
         if (infochange || eos) {
-            hwBuffer.length = 0;
-            hwBuffer.bufferId = -1;
+        //    hwBuffer.length = 0;
+        //    hwBuffer.bufferId = -1;
         } else {
             hwBuffer.length = mpp_frame_get_hor_stride(mpp_frame) * mpp_frame_get_ver_stride(mpp_frame) * 3 / 2;
         }
 
         if (mDebug) {
-           ALOGD("%s: this = %p, bufferId = %d, mpp_frame = %p,frame width: %d frame height: %d width: %d height %d "
+           ALOGD("%s: this = %p, mUniqueID = %d, fd = %d, mppBuffer = %p, mpp_frame = %p,frame width: %d frame height: %d width: %d height %d "
                                   "pts %lld dts %lld Err %d EOS %d Infochange %d isI4O2: %d flags: %lld",
-                                  __FUNCTION__, this, hwBuffer.bufferId, mpp_frame,
+                                  __FUNCTION__, this, hwBuffer.bufferId, 
+                                  fd, buffer, mpp_frame,
                                   mpp_frame_get_hor_stride(mpp_frame),
                                   mpp_frame_get_ver_stride(mpp_frame),
                                   mpp_frame_get_width(mpp_frame),
@@ -773,8 +778,8 @@ int RockitHwMpi::giveBackBuffer(const RockitHWBuffer& buffer) {
         MppBuffer mppBuffer = ctx->mList.mMap[index].mMppBuffer;
         ctx->mList.mMap[index].mSite = BUFFER_SITE_BY_MPI;
         if (mDebug) {
-            ALOGE("%s this = %p, mUniqueID = %d, mppBuffer = %p",
-                __FUNCTION__, this, fd, mppBuffer);
+            ALOGE("%s this = %p, mUniqueID = %d, mFd = %d, mppBuffer = %p",
+                __FUNCTION__, this, fd, ctx->mList.mMap[index].mFd, mppBuffer);
         }
         if (mppBuffer != NULL) {
             mpp_buffer_put(mppBuffer);
