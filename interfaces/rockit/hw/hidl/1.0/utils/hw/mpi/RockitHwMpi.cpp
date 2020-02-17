@@ -809,13 +809,23 @@ int RockitHwMpi::reset() {
     MpiCodecContext* ctx = (MpiCodecContext*)mCtx;
     int ret = ctx->mpp_mpi->reset(ctx->mpp_ctx);
     if (MPP_OK != ret) {
-        ALOGE("mpi->reset failed\n");
+        ALOGE("reset: mpi->reset failed\n");
         return -1;
     }
     return 0;
 }
 
 int RockitHwMpi::flush() {
+    if (mCtx == NULL) {
+        return -1;
+    }
+
+    MpiCodecContext* ctx = (MpiCodecContext*)mCtx;
+    int ret = ctx->mpp_mpi->reset(ctx->mpp_ctx);
+    if (MPP_OK != ret) {
+        ALOGE("flush: mpi->reset failed\n");
+        return -1;
+    }
     return 0;
 }
 
