@@ -61,6 +61,8 @@ class RTNativeWindowCallback : public RTNativeWindowCBInterface {
 
     virtual int setDataSpace(void *nativeWindow, int32_t dataSpace);
 
+    virtual int setTransform(void *nativeWindow, int32_t transform);
+
  private:
     int32_t mDrmFd;
 };

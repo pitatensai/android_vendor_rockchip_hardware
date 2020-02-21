@@ -242,3 +242,7 @@ int RTNativeWindowCallback::setDataSpace(void *nativeWindow, int32_t dataSpace) 
     return native_window_set_buffers_data_space((ANativeWindow *)nativeWindow,(android_dataspace_t)dataSpace);
 }
 
+int RTNativeWindowCallback::setTransform(void *nativeWindow, int32_t transform) {
+    ALOGV("%s %d in", __FUNCTION__, __LINE__);
+    return native_window_set_buffers_transform((ANativeWindow *)nativeWindow, transform);
+}
