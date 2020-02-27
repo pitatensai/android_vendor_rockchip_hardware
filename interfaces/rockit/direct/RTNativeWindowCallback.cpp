@@ -200,7 +200,7 @@ int RTNativeWindowCallback::dequeueBufferAndWait(void *nativeWindow, RTNativeWin
         /*
          * must close handle here, or lead to drm buffer leak
          */
-        drm_free(mDrmFd, handle);
+        //drm_free(mDrmFd, handle);
     }
 
     info->graphicBuffer = (void *)(graphicBuffer.get());
