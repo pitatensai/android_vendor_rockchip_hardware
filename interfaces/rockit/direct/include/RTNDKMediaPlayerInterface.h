@@ -32,7 +32,8 @@ typedef int32_t rt_status;
 #define INT64 int64_t
 #endif
 
-class  RTParcel;
+class RTParcel;
+class IRTMediaDataSource;
 class RTPlayerListener {
  public:
     RTPlayerListener() {}
@@ -51,6 +52,7 @@ class RTNDKMediaPlayerInterface {
     virtual rt_status setUID(uid_t uid) = 0;
     virtual rt_status setDataSource(const char *url, const char *headers) = 0;
     virtual rt_status setDataSource(int fd, int64_t offset, int64_t length) = 0;
+    virtual rt_status setDataSource(IRTMediaDataSource *source) = 0;
     virtual rt_status setLooping(int loop) = 0;
     virtual rt_status setListener(RTPlayerListener* listener) = 0;
 
@@ -89,7 +91,6 @@ class RTNDKMediaPlayerInterface {
      * attachAuxEffect: attaches an auxiliary effect to the audio track
      */
     virtual rt_status setAudioSink(const void* audioSink) = 0;
-
     virtual rt_status setVideoSurface(void* surface) = 0;
     virtual rt_status setVideoSurfaceCB(void *callback) = 0;
 };
