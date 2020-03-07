@@ -32,6 +32,7 @@
 #include "RTNativeWindowCallback.h"
 #include "RTMsgCallback.h"
 #include "RTAudioSinkCallback.h"
+#include "RTSubtitleSink.h"
 
 namespace android {
 
@@ -44,6 +45,7 @@ typedef struct ROCKIT_PLAYER_CTX {
      sp<ANativeWindow>              mNativeWindow;
      RTNativeWindowCallback        *mNativeWindowCB;
      RTMsgCallback                 *mMsgCallback;
+     RTSubteSink                   *mSubteSink;
 } RockitPlayerCtx;
 
 RockitPlayerManager::RockitPlayerManager(android::MediaPlayerInterface* mediaPlayer) {
@@ -69,6 +71,8 @@ void RockitPlayerManager::initPlayer(android::MediaPlayerInterface* mediaPlayer)
     mCtx->mPlayer->setNativeWindowCallback((void *)mCtx->mNativeWindowCB);
     mCtx->mMsgCallback = new RTMsgCallback(mediaPlayer);
     mCtx->mPlayer->setListener(mCtx->mMsgCallback);
+    mCtx->mSubteSink = new RTSubteSink();
+    mCtx->mPlayer->setSubteSink((void *)mCtx->mSubteSink);
     ALOGD("createPlayer err: %d nativeWindowCB: %p", err, mCtx->mNativeWindowCB);
 }
 
@@ -82,6 +86,9 @@ void RockitPlayerManager::deinitPlayer() {
     }
     if (mCtx->mMsgCallback != NULL) {
         delete mCtx->mMsgCallback;
+    }
+    if(mCtx->mSubteSink != NULL) {
+        delete mCtx->mSubteSink;
     }
     mCtx->mPlayer->destroyPlayer();
 }

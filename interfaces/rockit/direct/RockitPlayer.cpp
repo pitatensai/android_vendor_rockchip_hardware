@@ -442,6 +442,10 @@ void RockitPlayer::setAudioSink(const void *audioSink) {
     ALOGV("setAudioSink audioSink: %p", audioSink);
     mPlayerImpl->setAudioSink(audioSink);
 }
+void RockitPlayer::setSubteSink(const void *subteSink) {
+    ALOGV("setSubteSink subteSink: %p", subteSink);
+    mPlayerImpl->setSubteSink(subteSink);
+}
 
 rt_status RockitPlayer::setParameter(int key, const Parcel &request) {
     (void)request;

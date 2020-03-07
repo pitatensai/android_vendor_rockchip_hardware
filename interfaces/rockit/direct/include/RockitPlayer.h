@@ -63,6 +63,7 @@ class RockitPlayer : public RefBase {
     virtual int32_t   playerType();
     virtual rt_status invoke(const Parcel &request, Parcel *reply);
     virtual void      setAudioSink(const void *audioSink);
+    virtual void      setSubteSink(const void *subteSink);
     virtual rt_status setParameter(int key, const Parcel &request);
 
     virtual rt_status setNativeWindowCallback(void *callback);

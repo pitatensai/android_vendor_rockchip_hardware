@@ -7,12 +7,15 @@ cc_library_shared {
         "RTNativeWindowCallback.cpp",
         "RTMsgCallback.cpp",
         "RTAudioSinkCallback.cpp",
+        "RTGraphicWindowApi.cpp",
+        "RTSubtitleSink.cpp",
     ],
 
     shared_libs: [
         "libbase",
         "libutils",
         "libcutils",
+        "libEGL",
         "libGLESv1_CM",
         "libui",
         "libgui",

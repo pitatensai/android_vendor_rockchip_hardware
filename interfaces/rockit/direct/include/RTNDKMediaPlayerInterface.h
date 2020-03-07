@@ -91,6 +91,7 @@ class RTNDKMediaPlayerInterface {
      * attachAuxEffect: attaches an auxiliary effect to the audio track
      */
     virtual rt_status setAudioSink(const void* audioSink) = 0;
+    virtual rt_status setSubteSink(const void* subteSink) = 0;
     virtual rt_status setVideoSurface(void* surface) = 0;
     virtual rt_status setVideoSurfaceCB(void *callback) = 0;
 };
