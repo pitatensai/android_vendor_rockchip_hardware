@@ -844,6 +844,7 @@ int RockitHwMpi::control(int cmd, const RockitHWParamPairs& param) {
                 ALOGD("%s: HW_CMD_BUFFER_GROUP_CLEAR", __FUNCTION__);
                 dumpMppBufferList();
             }
+            freeDataBufferList();
             cleanMppBuffer();
             mpp_buffer_group_clear(ctx->frm_grp);
             break;
