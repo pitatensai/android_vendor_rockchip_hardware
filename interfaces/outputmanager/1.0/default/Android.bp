@@ -33,6 +33,7 @@ cc_binary {
     vendor: true,
     relative_install_path: "hw",
     init_rc: ["rockchip.hardware.outputmanager@1.0-service.rc"],
+    vintf_fragments: ["rockchip.hardware.outputmanager@1.0-service.xml"],
     srcs: ["service.cpp"],
 
     shared_libs: [
