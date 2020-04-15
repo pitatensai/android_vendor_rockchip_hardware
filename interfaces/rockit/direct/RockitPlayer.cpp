@@ -461,5 +461,17 @@ rt_status RockitPlayer::setListener(RTPlayerListener *listener) {
     return mPlayerImpl->setListener(listener);
 }
 
+rt_status RockitPlayer::setPlaybackSettings(const AudioPlaybackRate& rate) {
+    RtMetaDataInterface* meta = (RtMetaDataInterface *)mCreateMetaDataFunc();
+
+    meta->setInt32(kUserInvokeCmd, RT_INVOKE_SET_PLAY_SPEED);
+    meta->setFloat(kUserInvokeSetPlaybackRate, rate.mSpeed);
+
+    rt_status status = mPlayerImpl->invoke(meta, NULL);
+
+    mDestroyMetaDataFunc((void **)&meta);
+    return status;
+}
+
 }
 

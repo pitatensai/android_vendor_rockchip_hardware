@@ -216,7 +216,7 @@ class RTAudioSinkCBInterface {
     virtual int32_t latency() = 0;
     virtual int32_t frameSize() = 0;
     virtual int32_t getPlaybackRate(RTAudioPlaybackRate *param) = 0;
-    virtual int32_t setPlaybackRate(RTAudioPlaybackRate param) = 0;
+    virtual int32_t setPlaybackRate(const RTAudioPlaybackRate& param) = 0;
     virtual int64_t getPlayedOutDurationUs() = 0;
 
     virtual ~RTAudioSinkCBInterface() {}

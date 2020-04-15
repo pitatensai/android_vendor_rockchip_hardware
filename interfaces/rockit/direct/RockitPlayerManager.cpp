@@ -46,6 +46,8 @@ typedef struct ROCKIT_PLAYER_CTX {
      RTNativeWindowCBInterface     *mNativeWindowCB;
      RTMsgCallback                 *mMsgCallback;
      RTSubteSink                   *mSubteSink;
+     AudioPlaybackRate              mAudioPlayRate;
+     bool                           mAudioPlayRateChanged;
 } RockitPlayerCtx;
 
 RockitPlayerManager::RockitPlayerManager(android::MediaPlayerInterface* mediaPlayer) {
@@ -73,6 +75,7 @@ void RockitPlayerManager::initPlayer(android::MediaPlayerInterface* mediaPlayer)
     mCtx->mPlayer->setListener(mCtx->mMsgCallback);
     mCtx->mSubteSink = new RTSubteSink();
     mCtx->mPlayer->setSubteSink((void *)mCtx->mSubteSink);
+    mCtx->mAudioPlayRate = AUDIO_PLAYBACK_RATE_DEFAULT;
     ALOGD("createPlayer err: %d nativeWindowCB: %p", err, mCtx->mNativeWindowCB);
 }
 
@@ -207,6 +210,20 @@ void RockitPlayerManager::setAudioSink(const sp<MediaPlayerBase::AudioSink> &aud
     mCtx->mAudioSink = audioSink;
     mCtx->mAudioSinkCB = new RTAudioSinkCallback(mCtx->mAudioSink);
     mCtx->mPlayer->setAudioSink((void *)mCtx->mAudioSinkCB);
+
+    /*
+     * may be setPlaybackSettings is called before this function,
+     * so call setPlaybackRate here to adjust play rate of audio
+     */
+    if (mCtx->mAudioPlayRateChanged) {
+        RTAudioPlaybackRate param;
+        param.mSpeed = mCtx->mAudioPlayRate.mSpeed;
+        param.mPitch = mCtx->mAudioPlayRate.mPitch;
+        param.mStretchMode = (RTAudioTimestretchStretchMode)mCtx->mAudioPlayRate.mStretchMode;
+        param.mFallbackMode = (RTAudioTimestretchFallbackMode)mCtx->mAudioPlayRate.mFallbackMode;
+        mCtx->mAudioSinkCB->setPlaybackRate(param);
+        mCtx->mAudioPlayRateChanged = false;
+    }
 }
 
 status_t RockitPlayerManager::setParameter(int key, const Parcel &request) {
@@ -230,13 +247,51 @@ status_t RockitPlayerManager::getMetadata(
 }
 
 status_t RockitPlayerManager::getPlaybackSettings(AudioPlaybackRate* rate) {
-    (void)rate;
-    return OK;//reinterpret_cast<status_t>(mPlayer->getPlaybackSettings(rate));
+    status_t status = OK;
+    /* if there is AudioSink/AudioTrack, get the playrate from it */
+    if (mCtx->mAudioSinkCB != NULL) {
+         RTAudioPlaybackRate param;
+         status = (status_t)mCtx->mAudioSinkCB->getPlaybackRate(&param);
+         mCtx->mAudioPlayRate.mSpeed = param.mSpeed;
+         mCtx->mAudioPlayRate.mPitch = param.mPitch;
+         mCtx->mAudioPlayRate.mStretchMode = (AudioTimestretchStretchMode)param.mStretchMode;
+         mCtx->mAudioPlayRate.mFallbackMode = (AudioTimestretchFallbackMode)param.mFallbackMode;
+         *rate = mCtx->mAudioPlayRate;
+    } else {
+        *rate = mCtx->mAudioPlayRate;
+    }
+    return status;
 }
 
 status_t RockitPlayerManager::setPlaybackSettings(const AudioPlaybackRate& rate) {
-    (void)rate;
-    return OK;//reinterpret_cast<status_t>(mPlayer->setPlaybackSettings(rate));
+    //  checkout the rate value, keep the min and max vaule sync with nuplayer
+    if ((rate.mSpeed != 0.f && rate.mSpeed < AUDIO_TIMESTRETCH_SPEED_MIN)
+            || rate.mSpeed > AUDIO_TIMESTRETCH_SPEED_MAX
+            || rate.mPitch < AUDIO_TIMESTRETCH_SPEED_MIN
+            || rate.mPitch > AUDIO_TIMESTRETCH_SPEED_MAX) {
+        return BAD_VALUE;
+    }
+
+    // keep play back rate, may be this function be called before mAudioSinkCB be created
+    mCtx->mAudioPlayRate = rate;
+
+    // set speed to rockit, may be video/audio have diffrent procee in diffrent rate
+    mCtx->mPlayer->setPlaybackSettings(rate);
+
+    // set play rate to AudioTrack/AudioSink
+    if (mCtx->mAudioSinkCB != NULL) {
+        RTAudioPlaybackRate param;
+
+        param.mSpeed = rate.mSpeed;
+        param.mPitch = rate.mPitch;
+        param.mStretchMode = (RTAudioTimestretchStretchMode)rate.mStretchMode;
+        param.mFallbackMode = (RTAudioTimestretchFallbackMode)rate.mFallbackMode;
+        mCtx->mAudioSinkCB->setPlaybackRate(param);
+    } else {
+        mCtx->mAudioPlayRateChanged = true;
+    }
+
+    return OK;
 }
 
 status_t RockitPlayerManager::dump(int fd, const Vector<String16> &args) const {

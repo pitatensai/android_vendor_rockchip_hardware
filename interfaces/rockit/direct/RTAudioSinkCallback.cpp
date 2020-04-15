@@ -24,6 +24,16 @@
 
 using namespace ::android;
 
+static inline int32_t getAudioSinkPcmMsSetting() {
+    return property_get_int32(
+            "media.rockit.audio.sink", 500 /* default_value */);
+}
+
+static inline int32_t getEnableAudioSetting(){
+    return property_get_int32(
+            "media.rockit.audio.setting", 0 /* default_value */);
+}
+
 RTAudioSinkCallback::RTAudioSinkCallback(const sp<MediaPlayerBase::AudioSink> &audioSink) {
     mAudioSink = audioSink;
     memset(&mAudioSinkParam, 0, sizeof(RTAudioSinkParam));
@@ -39,17 +49,28 @@ int32_t RTAudioSinkCallback::open(void *param) {
     ALOGV("RTAudioSinkCallback open in");
     memcpy(&mAudioSinkParam, param, sizeof(RTAudioSinkParam));
 
+    uint32_t frameCount = 0;
+    int bufferCount = DEFAULT_AUDIOSINK_BUFFERCOUNT;
+    int32_t enable = getEnableAudioSetting();
+
+    /*  if current audio stream is mixer output, we set more buffer for audioTrack */
+    audio_output_flags_t flags = (audio_output_flags_t)mAudioSinkParam.flags;
+    if((flags == AUDIO_OUTPUT_FLAG_NONE) && enable) {
+       frameCount = ((unsigned long long)mAudioSinkParam.sampleRate * getAudioSinkPcmMsSetting()) / 1000;
+       bufferCount = 0;
+    }
+
     return (int32_t)mAudioSink->open(mAudioSinkParam.sampleRate,
                                      mAudioSinkParam.channels,
                                      mAudioSinkParam.channelMask,
                                      (audio_format_t)mAudioSinkParam.format,
-                                     -1, /* buffer count */
+                                     bufferCount, /* buffer count */
                                      NULL, /* callback */
                                      NULL, /* cookie */
                                      (audio_output_flags_t)mAudioSinkParam.flags,
                                      NULL, /* offload info */
                                      false, /* do not reconnect */
-                                     0 /* suggested frame count */);
+                                     frameCount);
 }
 
 int32_t RTAudioSinkCallback::start() {
@@ -118,15 +139,16 @@ int32_t RTAudioSinkCallback::frameSize() {
 int32_t RTAudioSinkCallback::getPlaybackRate(RTAudioPlaybackRate *param) {
     ALOGV("RTAudioSinkCallback start in");
     android::AudioPlaybackRate rate;
-    mAudioSink->getPlaybackRate(&rate);
+    int32_t status = mAudioSink->getPlaybackRate(&rate);
     param->mSpeed = rate.mSpeed;
     param->mPitch = rate.mPitch;
     param->mStretchMode = (RTAudioTimestretchStretchMode)rate.mStretchMode;
     param->mFallbackMode = (RTAudioTimestretchFallbackMode)rate.mFallbackMode;
-    return 0;
+    return status;
 }
 
-int32_t RTAudioSinkCallback::setPlaybackRate(RTAudioPlaybackRate param) {
+
+int32_t RTAudioSinkCallback::setPlaybackRate(const RTAudioPlaybackRate& param) {
     ALOGV("RTAudioSinkCallback start in");
     AudioPlaybackRate rate;
     rate.mSpeed = param.mSpeed;

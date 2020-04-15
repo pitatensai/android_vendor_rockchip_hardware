@@ -48,7 +48,8 @@ public:
     virtual int32_t latency();
     virtual int32_t frameSize();
     virtual int32_t getPlaybackRate(RTAudioPlaybackRate *param);
-    virtual int32_t setPlaybackRate(RTAudioPlaybackRate param);
+    virtual int32_t setPlaybackRate(const RTAudioPlaybackRate& param);
+
     virtual int64_t getPlayedOutDurationUs();
     virtual int32_t setAudioChannel(RTAudioChannel mode);
 

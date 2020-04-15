@@ -76,6 +76,8 @@ enum {
     kUserInvokeGetSelectTrack     = MKTAG('t', 's', 'l', 'e'),
     kUserInvokeGetSelectTrackIdx  = MKTAG('t', 'i', 'd', 'x'),
 
+    kUserInvokeSetPlaybackRate    = MKTAG('i', 'p', 'b', 'r'), // float
+
     /* user's notify command*/
     kUserNotifyPts                = MKTAG('u', 'n', 'p', 's'),
     kUserNotifySize               = MKTAG('u', 'n', 's', 'e'),

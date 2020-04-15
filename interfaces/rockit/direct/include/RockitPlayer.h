@@ -30,6 +30,11 @@ typedef void   destroyRockitPlayerFunc(void **player);
 typedef void * createRockitMetaDataFunc();
 typedef void   destroyRockitMetaDataFunc(void **meta);
 
+enum RTInvokeId {
+    RT_INVOKE_SET_PLAY_SPEED = 10000,
+    RT_INVOKE_GET_PLAY_SPEED,
+};
+
 class RockitPlayer : public RefBase {
  public:
     RockitPlayer();
@@ -68,6 +73,7 @@ class RockitPlayer : public RefBase {
 
     virtual rt_status setNativeWindowCallback(void *callback);
     virtual rt_status setListener(RTPlayerListener *listener);
+    virtual rt_status setPlaybackSettings(const AudioPlaybackRate& rate);
 
  protected:
     rt_status fillInvokeRequest(const Parcel &parcel, RtMetaDataInterface* meta, int32_t& event);
