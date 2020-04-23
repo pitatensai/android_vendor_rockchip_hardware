@@ -250,7 +250,7 @@ int32_t RockitPlayer::playerType() {
     return 6;
 }
 
-int32_t RockitPlayer::fillInvokeRequest(const Parcel &request, RtMetaDataInterface* meta, int32_t& event) {
+int32_t RockitPlayer::fillInvokeRequest(const Parcel &request, RtMetaData* meta, int32_t& event) {
     int32_t methodId;
     status_t ret = request.readInt32(&methodId);
     if (ret != OK) {
@@ -269,7 +269,7 @@ int32_t RockitPlayer::fillInvokeRequest(const Parcel &request, RtMetaDataInterfa
             int cmd = (methodId == INVOKE_ID_SELECT_TRACK)?
                     RT_INVOKE_ID_SELECT_TRACK:RT_INVOKE_ID_UNSELECT_TRACK;
             meta->setInt32(kUserInvokeCmd, cmd);
-            meta->setInt32(kUserInvokeSetTrackIdx, index);
+            meta->setInt32(kUserInvokeTrackIdx, index);
         } break;
 
         case INVOKE_ID_SET_VIDEO_SCALING_MODE: {
@@ -331,7 +331,7 @@ void RockitPlayer::fillTrackInfor(Parcel *reply, int type,String16& mime, String
     }
 }
 
-rt_status RockitPlayer::fillTrackInfoReply(RtMetaDataInterface* meta, Parcel* reply) {
+rt_status RockitPlayer::fillTrackInfoReply(RtMetaData* meta, Parcel* reply) {
     int counter = 0;
     void* tracks = NULL;
 
@@ -387,7 +387,7 @@ rt_status RockitPlayer::fillTrackInfoReply(RtMetaDataInterface* meta, Parcel* re
     return 0;
 }
 
-rt_status RockitPlayer::fillGetSelectedTrackReply(RtMetaDataInterface* meta, Parcel* reply) {
+rt_status RockitPlayer::fillGetSelectedTrackReply(RtMetaData* meta, Parcel* reply) {
     int idx = 0;
     RTBool status = meta->findInt32(kUserInvokeGetSelectTrackIdx, &idx);
     if(status == RT_FLASE) {
@@ -399,7 +399,7 @@ rt_status RockitPlayer::fillGetSelectedTrackReply(RtMetaDataInterface* meta, Par
     return OK;
 }
 
-rt_status RockitPlayer::fillInvokeReply(int32_t event, RtMetaDataInterface* meta, Parcel* reply) {
+rt_status RockitPlayer::fillInvokeReply(int32_t event, RtMetaData* meta, Parcel* reply) {
     rt_status ret = OK;
     switch (event) {
         case INVOKE_ID_GET_TRACK_INFO: {
@@ -421,8 +421,8 @@ rt_status RockitPlayer::invoke(const Parcel &request, Parcel *reply) {
         return OK;
     }
 
-    RtMetaDataInterface* in = (RtMetaDataInterface *)mCreateMetaDataFunc();
-    RtMetaDataInterface* out = (RtMetaDataInterface *)mCreateMetaDataFunc();
+    RtMetaData* in = (RtMetaData *)mCreateMetaDataFunc();
+    RtMetaData* out = (RtMetaData *)mCreateMetaDataFunc();
     int32_t event = -1;
     // tranlate cmd to rockit can understand
     fillInvokeRequest(request, in, event);
@@ -462,7 +462,7 @@ rt_status RockitPlayer::setListener(RTPlayerListener *listener) {
 }
 
 rt_status RockitPlayer::setPlaybackSettings(const AudioPlaybackRate& rate) {
-    RtMetaDataInterface* meta = (RtMetaDataInterface *)mCreateMetaDataFunc();
+    RtMetaData* meta = (RtMetaData *)mCreateMetaDataFunc();
 
     meta->setInt32(kUserInvokeCmd, RT_INVOKE_SET_PLAY_SPEED);
     meta->setFloat(kUserInvokeSetPlaybackRate, rate.mSpeed);

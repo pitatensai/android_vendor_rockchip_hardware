@@ -28,7 +28,7 @@
 #include "rockit/hidl/1.0/RTNDKMediaPlayerInterface.h"
 #include "rockit/hidl/1.0/RTAudioSinkCBInterface.h"
 #include "rockit/hidl/1.0/RTNativeWindowCBInterface.h"
-#include "rockit/hidl/1.0/RTMedaDataInterface.h"
+#include "rockit/hidl/1.0/RTMetaData.h"
 
 namespace rockchip {
 namespace hardware {
@@ -152,9 +152,9 @@ struct RockitPlayer : public IRockitPlayer {
 protected:
     virtual ~RockitPlayer();
 
-    virtual int32_t getInvokeRequest(const ::rockchip::hardware::rockit::V1_0::RockitInvokeEvent& event, RtMetaDataInterface* meta);
-    virtual int32_t fillTrackInfoReply(RtMetaDataInterface* meta, RockitInvokeReply* reply) ;
-    virtual int32_t fillInvokeReply(int32_t event, RtMetaDataInterface* meta, RockitInvokeReply* reply);
+    virtual int32_t getInvokeRequest(const ::rockchip::hardware::rockit::V1_0::RockitInvokeEvent& event, RtMetaData* meta);
+    virtual int32_t fillTrackInfoReply(RtMetaData* meta, RockitInvokeReply* reply) ;
+    virtual int32_t fillInvokeReply(int32_t event, RtMetaData* meta, RockitInvokeReply* reply);
     virtual int32_t translateMediaType(int32_t rtMediaType);
 
     RTNDKMediaPlayerInterface   *mPlayerImpl;

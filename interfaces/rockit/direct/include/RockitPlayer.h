@@ -19,7 +19,7 @@
 
 #include <media/MediaPlayerInterface.h>
 #include "RTNDKMediaPlayerInterface.h"
-#include "RTMedaDataInterface.h"
+#include "RTMetaData.h"
 #include <binder/Parcel.h>
 
 namespace android {
@@ -76,12 +76,12 @@ class RockitPlayer : public RefBase {
     virtual rt_status setPlaybackSettings(const AudioPlaybackRate& rate);
 
  protected:
-    rt_status fillInvokeRequest(const Parcel &parcel, RtMetaDataInterface* meta, int32_t& event);
-    rt_status fillInvokeReply(int32_t event, RtMetaDataInterface* meta, Parcel* reply);
-    rt_status fillTrackInfoReply(RtMetaDataInterface* meta, Parcel* reply);
+    rt_status fillInvokeRequest(const Parcel &parcel, RtMetaData* meta, int32_t& event);
+    rt_status fillInvokeReply(int32_t event, RtMetaData* meta, Parcel* reply);
+    rt_status fillTrackInfoReply(RtMetaData* meta, Parcel* reply);
     void      fillTrackInfor(Parcel *reply, int type, String16& mime, String16& lang);
     rt_status translateMediaType(int32_t rtMediaType);
-    rt_status fillGetSelectedTrackReply(RtMetaDataInterface* meta, Parcel* reply);
+    rt_status fillGetSelectedTrackReply(RtMetaData* meta, Parcel* reply);
 
  private:
     RTNDKMediaPlayerInterface   *mPlayerImpl;

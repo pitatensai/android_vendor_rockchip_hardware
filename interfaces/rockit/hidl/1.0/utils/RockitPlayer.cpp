@@ -281,7 +281,7 @@ int32_t RockitPlayer::translateMediaType(int32_t rtMediaType) {
     return mediaType;
 }
 
-int32_t RockitPlayer::fillTrackInfoReply(RtMetaDataInterface* meta, RockitInvokeReply* reply) {
+int32_t RockitPlayer::fillTrackInfoReply(RtMetaData* meta, RockitInvokeReply* reply) {
     int counter = 0;
     void* tracks = NULL;
 
@@ -317,7 +317,7 @@ int32_t RockitPlayer::fillTrackInfoReply(RtMetaDataInterface* meta, RockitInvoke
     return 0;
 }
 
-int32_t RockitPlayer::fillInvokeReply(int32_t event, RtMetaDataInterface* meta, RockitInvokeReply* reply) {
+int32_t RockitPlayer::fillInvokeReply(int32_t event, RtMetaData* meta, RockitInvokeReply* reply) {
     switch (event) {
         case INVOKE_ID_GET_TRACK_INFO: {
             fillTrackInfoReply(meta, reply);
@@ -330,7 +330,7 @@ int32_t RockitPlayer::fillInvokeReply(int32_t event, RtMetaDataInterface* meta, 
 /*
  * translate command and parameters rockit can use
  */
-int32_t RockitPlayer::getInvokeRequest(const ::rockchip::hardware::rockit::V1_0::RockitInvokeEvent& event, RtMetaDataInterface* meta) {
+int32_t RockitPlayer::getInvokeRequest(const ::rockchip::hardware::rockit::V1_0::RockitInvokeEvent& event, RtMetaData* meta) {
     switch (event.event) {
         case INVOKE_ID_GET_TRACK_INFO: {
             meta->setInt32(kUserInvokeCmd, INVOKE_ID_GET_TRACK_INFO);
@@ -352,8 +352,8 @@ Return<void> RockitPlayer::invoke(const ::rockchip::hardware::rockit::V1_0::Rock
     RockitInvokeReply reply;
     reply.event = event.event;
 
-    RtMetaDataInterface* in = (RtMetaDataInterface *)mCreateMetaDataFunc();
-    RtMetaDataInterface* out = (RtMetaDataInterface *)mCreateMetaDataFunc();
+    RtMetaData* in = (RtMetaData *)mCreateMetaDataFunc();
+    RtMetaData* out = (RtMetaData *)mCreateMetaDataFunc();
 
     getInvokeRequest(event, in);
 
@@ -423,7 +423,7 @@ void RTPlayerCallback::notify(INT32 msg, INT32 ext1, INT32 ext2, void* obj) {
     NotifyTimeTextInfo notifyInfo;
     if (obj != NULL && msg == RT_TEXT_NOTIFY_MSG) {
         const char *text;
-        RtMetaDataInterface* textInfo = (RtMetaDataInterface*)obj;
+        RtMetaData *textInfo = (RtMetaData *)obj;
         textInfo->findInt64(kUserNotifyPts, &notifyInfo.startTime);
         textInfo->findInt32(kUserNotifySize, &notifyInfo.size);
         textInfo->findCString(kUserNotifyData, &text);

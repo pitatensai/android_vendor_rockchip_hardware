@@ -46,7 +46,7 @@ void RTMsgCallback::notify(int32_t msg, int32_t ext1, int32_t ext2, void* ptr) {
         int64_t startTime;
         int32_t size;
 
-        RtMetaDataInterface* textInfo = (RtMetaDataInterface*)ptr;
+        RtMetaData* textInfo = (RtMetaData *)ptr;
         textInfo->findInt64(kUserNotifyPts, &startTime);
         textInfo->findInt32(kUserNotifySize, &size);
         textInfo->findCString(kUserNotifyData, &text);

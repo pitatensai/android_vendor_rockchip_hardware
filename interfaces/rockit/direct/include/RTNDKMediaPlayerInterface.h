@@ -20,7 +20,7 @@
 
 #include <sys/types.h>
 #include <inttypes.h>
-#include "RTMedaDataInterface.h"
+#include "RTMetaData.h"
 
 typedef int32_t rt_status;
 
@@ -82,7 +82,7 @@ class RTNDKMediaPlayerInterface {
      *   Parcel is defined in /android/frameworks/native/libs/binder/Parcel.cpp
      * RTParcel is defined in /src/rt_media/sink-osal/RTParcel.cpp
      */
-    virtual rt_status invoke(const RtMetaDataInterface *request, RtMetaDataInterface *reply) = 0;
+    virtual rt_status invoke(const RtMetaData *request, RtMetaData *reply) = 0;
     virtual rt_status setParameter(int key, const RTParcel &request) = 0;
     virtual rt_status getParameter(int key, RTParcel *reply) = 0;
 
