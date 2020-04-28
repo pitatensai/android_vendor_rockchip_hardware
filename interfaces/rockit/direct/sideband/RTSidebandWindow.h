@@ -37,7 +37,7 @@
 #include <system/window.h>
 #include <gui/Surface.h>
 
-#include "RTNativeWindowCBInterface.h"
+#include "RTSurfaceInterface.h"
 
 namespace android {
 

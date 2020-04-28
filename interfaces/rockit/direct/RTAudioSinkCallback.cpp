@@ -113,7 +113,7 @@ int32_t RTAudioSinkCallback::write(const void *buffer, int32_t size) {
     short *pcmData = (short *)buffer;
     short *pcmDataEnd = (short *)buffer + (size/2);
 
-    if ((mAudioSinkParam.flags == RT_AUDIO_OUTPUT_FLAG_NONE)
+    if ((mAudioSinkParam.flags == AAUDIO_OUTPUT_FLAG_NONE)
         && mAudioSinkParam.channels == 2) {
         if (mAudioChannelMode == RT_AUDIO_CHANNEL_LEFT) {
             while(pcmData < pcmDataEnd) {
@@ -142,8 +142,8 @@ int32_t RTAudioSinkCallback::getPlaybackRate(RTAudioPlaybackRate *param) {
     int32_t status = mAudioSink->getPlaybackRate(&rate);
     param->mSpeed = rate.mSpeed;
     param->mPitch = rate.mPitch;
-    param->mStretchMode = (RTAudioTimestretchStretchMode)rate.mStretchMode;
-    param->mFallbackMode = (RTAudioTimestretchFallbackMode)rate.mFallbackMode;
+    param->mStretchMode = (AAudioTimestretchStretchMode)rate.mStretchMode;
+    param->mFallbackMode = (AAudioTimestretchFallbackMode)rate.mFallbackMode;
     return status;
 }
 
@@ -158,8 +158,8 @@ int32_t RTAudioSinkCallback::setPlaybackRate(const RTAudioPlaybackRate& param) {
     return mAudioSink->setPlaybackRate(rate);
 }
 
-int64_t RTAudioSinkCallback::getPlayedOutDurationUs() {
-    ALOGV("getPlayedOutDurationUs in");
+int64_t RTAudioSinkCallback::getPlaybackDurationUs() {
+    ALOGV("getPlaybackDurationUs in");
     return mAudioSink->getPlayedOutDurationUs(systemTime(SYSTEM_TIME_MONOTONIC) / 1000ll);
 }
 

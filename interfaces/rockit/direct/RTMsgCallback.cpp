@@ -19,7 +19,7 @@
 #define LOG_TAG "RTMsgCallback"
 
 #include "RTMsgCallback.h"
-
+#include "RTMediaMetaKeys.h"
 
 #define RT_KEY_LOCAL_SETTING                 102
 #define RT_KEY_START_TIME                    7
@@ -35,7 +35,7 @@ RTMsgCallback::RTMsgCallback(android::MediaPlayerInterface *player) {
 }
 
 RTMsgCallback::~RTMsgCallback() {
-    ALOGD("~RTMsgCallback(%p) construct", this);
+    ALOGD("~RTMsgCallback(%p) destruct", this);
 }
 
 void RTMsgCallback::notify(int32_t msg, int32_t ext1, int32_t ext2, void* ptr) {

@@ -29,7 +29,7 @@
 #include <gui/Surface.h>
 #include <system/window.h>
 #include <string.h>
-#include "RTNativeWindowCallback.h"
+#include "RTSurfaceCallback.h"
 #include "RTMsgCallback.h"
 #include "RTAudioSinkCallback.h"
 #include "RTSubtitleSink.h"
@@ -43,7 +43,7 @@ typedef struct ROCKIT_PLAYER_CTX {
      sp<MediaPlayerBase::AudioSink> mAudioSink;
      RTAudioSinkCallback           *mAudioSinkCB;
      sp<ANativeWindow>              mNativeWindow;
-     RTNativeWindowCBInterface     *mNativeWindowCB;
+     RTSurfaceCallback             *mVideoSinkCB;
      RTMsgCallback                 *mMsgCallback;
      RTSubteSink                   *mSubteSink;
      AudioPlaybackRate              mAudioPlayRate;
@@ -69,20 +69,18 @@ RockitPlayerManager::~RockitPlayerManager() {
 void RockitPlayerManager::initPlayer(android::MediaPlayerInterface* mediaPlayer) {
     mCtx->mPlayer = new RockitPlayer();
     rt_status err = mCtx->mPlayer->createPlayer();
-    mCtx->mNativeWindowCB = new RTNativeWindowCallback();
-    mCtx->mPlayer->setNativeWindowCallback((void *)mCtx->mNativeWindowCB);
     mCtx->mMsgCallback = new RTMsgCallback(mediaPlayer);
     mCtx->mPlayer->setListener(mCtx->mMsgCallback);
     mCtx->mSubteSink = new RTSubteSink();
     mCtx->mPlayer->setSubteSink((void *)mCtx->mSubteSink);
     mCtx->mAudioPlayRate = AUDIO_PLAYBACK_RATE_DEFAULT;
-    ALOGD("createPlayer err: %d nativeWindowCB: %p", err, mCtx->mNativeWindowCB);
+    ALOGD("createPlayer err: %d", err);
 }
 
 void RockitPlayerManager::deinitPlayer() {
     ALOGD("deinitPlayer");
-    if (mCtx->mNativeWindowCB != NULL) {
-        delete mCtx->mNativeWindowCB;
+    if (mCtx->mVideoSinkCB != NULL) {
+        delete mCtx->mVideoSinkCB;
     }
     if (mCtx->mAudioSinkCB != NULL) {
         delete mCtx->mAudioSinkCB;
@@ -129,14 +127,20 @@ status_t RockitPlayerManager::setDataSource(const sp<IStreamSource> &source) {
 
 status_t RockitPlayerManager::setVideoSurfaceTexture(
         const sp<IGraphicBufferProducer> &bufferProducer) {
-    ANativeWindow *window = NULL;
+    sp<ANativeWindow> window = NULL;
+    RTSurfaceCallback *surfaceCB = mCtx->mVideoSinkCB;
+    if (surfaceCB != NULL) {
+        delete surfaceCB;
+        surfaceCB = NULL;
+    }
     if (bufferProducer.get() != NULL) {
         window = new Surface(bufferProducer, true);
+        surfaceCB = new RTSurfaceCallback(window);
     }
-    void *params = (void *)window;
-    ALOGV("setVideoSurfaceTexture window: %p bufferProducer: %p", params, bufferProducer.get());
+    ALOGV("setVideoSurfaceTexture window: %p bufferProducer: %p", window.get(), bufferProducer.get());
     mCtx->mNativeWindow = window;
-    return (status_t)mCtx->mPlayer->setNativeWindow(static_cast<const void *>(window));
+    mCtx->mVideoSinkCB = surfaceCB;
+    return (status_t)mCtx->mPlayer->setVideoSink(static_cast<const void *>(surfaceCB));
 }
 
 status_t RockitPlayerManager::prepare() {
@@ -219,8 +223,8 @@ void RockitPlayerManager::setAudioSink(const sp<MediaPlayerBase::AudioSink> &aud
         RTAudioPlaybackRate param;
         param.mSpeed = mCtx->mAudioPlayRate.mSpeed;
         param.mPitch = mCtx->mAudioPlayRate.mPitch;
-        param.mStretchMode = (RTAudioTimestretchStretchMode)mCtx->mAudioPlayRate.mStretchMode;
-        param.mFallbackMode = (RTAudioTimestretchFallbackMode)mCtx->mAudioPlayRate.mFallbackMode;
+        param.mStretchMode = (AAudioTimestretchStretchMode)mCtx->mAudioPlayRate.mStretchMode;
+        param.mFallbackMode = (AAudioTimestretchFallbackMode)mCtx->mAudioPlayRate.mFallbackMode;
         mCtx->mAudioSinkCB->setPlaybackRate(param);
         mCtx->mAudioPlayRateChanged = false;
     }
@@ -284,8 +288,8 @@ status_t RockitPlayerManager::setPlaybackSettings(const AudioPlaybackRate& rate)
 
         param.mSpeed = rate.mSpeed;
         param.mPitch = rate.mPitch;
-        param.mStretchMode = (RTAudioTimestretchStretchMode)rate.mStretchMode;
-        param.mFallbackMode = (RTAudioTimestretchFallbackMode)rate.mFallbackMode;
+        param.mStretchMode = (AAudioTimestretchStretchMode)rate.mStretchMode;
+        param.mFallbackMode = (AAudioTimestretchFallbackMode)rate.mFallbackMode;
         mCtx->mAudioSinkCB->setPlaybackRate(param);
     } else {
         mCtx->mAudioPlayRateChanged = true;

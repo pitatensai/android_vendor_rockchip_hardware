@@ -17,7 +17,7 @@
 #ifndef ROCKIT_DIRECT_RTMSGCALLBACK_H
 #define ROCKIT_DIRECT_RTMSGCALLBACK_H
 
-#include "RTNDKMediaPlayerInterface.h"
+#include "RTMediaPlayerInterface.h"
 #include "RockitPlayer.h"
 #include <media/MediaPlayerInterface.h>
 

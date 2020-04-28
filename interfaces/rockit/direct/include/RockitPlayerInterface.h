@@ -19,7 +19,6 @@
 #define ROCKIT_DIRECT_ROCKITPLAYERCLIENT_H
 
 #include <media/MediaPlayerInterface.h>
-#include "RockitPlayerManager.h"
 
 namespace android {
 

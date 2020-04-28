@@ -17,6 +17,7 @@
 //#define LOG_NDEBUG 0
 #define LOG_TAG "RockitPlayerClient"
 #include "RockitPlayerInterface.h"
+#include "RockitPlayerManager.h"
 
 #include <utils/Log.h>
 #include <dlfcn.h>

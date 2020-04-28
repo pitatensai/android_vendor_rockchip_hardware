@@ -17,10 +17,10 @@
 #ifndef ROCKIT_DIRECT_ROCKITPLAYER_H
 #define ROCKIT_DIRECT_ROCKITPLAYER_H
 
-#include <media/MediaPlayerInterface.h>
-#include "RTNDKMediaPlayerInterface.h"
-#include "RTMetaData.h"
 #include <binder/Parcel.h>
+#include <media/MediaPlayerInterface.h>
+#include "rt_metadata.h"
+#include "RTMediaPlayerInterface.h"
 
 namespace android {
 
@@ -49,42 +49,39 @@ class RockitPlayer : public RefBase {
                 const char *url,
                 void *headers);
     virtual rt_status setDataSource(
-                int fd,
-                int64_t offset,
-                int64_t length);
-    virtual rt_status setNativeWindow(
-                const void *window);
+                INT32 fd,
+                INT64 offset,
+                INT64 length);
     virtual rt_status prepare();
     virtual rt_status prepareAsync();
     virtual rt_status start();
     virtual rt_status stop();
     virtual rt_status pause();
     virtual bool      isPlaying();
-    virtual rt_status seekTo(int32_t msec, uint32_t mode);
+    virtual rt_status seekTo(INT32 msec, UINT32 mode);
     virtual rt_status getCurrentPosition(int *msec);
     virtual rt_status getDuration(int *msec);
     virtual rt_status reset();
-    virtual rt_status setLooping(int32_t loop);
-    virtual int32_t   playerType();
+    virtual rt_status setLooping(INT32 loop);
+    virtual INT32     playerType();
     virtual rt_status invoke(const Parcel &request, Parcel *reply);
-    virtual void      setAudioSink(const void *audioSink);
-    virtual void      setSubteSink(const void *subteSink);
-    virtual rt_status setParameter(int key, const Parcel &request);
-
-    virtual rt_status setNativeWindowCallback(void *callback);
+    virtual rt_status setVideoSink(const void *videoSink);
+    virtual rt_status setAudioSink(const void *audioSink);
+    virtual rt_status setSubteSink(const void *subteSink);
+    virtual rt_status setParameter(INT32 key, const Parcel &request);
     virtual rt_status setListener(RTPlayerListener *listener);
     virtual rt_status setPlaybackSettings(const AudioPlaybackRate& rate);
 
  protected:
-    rt_status fillInvokeRequest(const Parcel &parcel, RtMetaData* meta, int32_t& event);
-    rt_status fillInvokeReply(int32_t event, RtMetaData* meta, Parcel* reply);
+    rt_status fillInvokeRequest(const Parcel &parcel, RtMetaData* meta, INT32& event);
+    rt_status fillInvokeReply(INT32 event, RtMetaData* meta, Parcel* reply);
     rt_status fillTrackInfoReply(RtMetaData* meta, Parcel* reply);
     void      fillTrackInfor(Parcel *reply, int type, String16& mime, String16& lang);
-    rt_status translateMediaType(int32_t rtMediaType);
+    rt_status translateMediaType(INT32 rtMediaType);
     rt_status fillGetSelectedTrackReply(RtMetaData* meta, Parcel* reply);
 
  private:
-    RTNDKMediaPlayerInterface   *mPlayerImpl;
+    RTMediaPlayerInterface      *mPlayerImpl;
 
     // rockit player lib impl
     void                        *mPlayerLibFd;

@@ -21,6 +21,7 @@
 #include <dlfcn.h>
 
 #include "RockitPlayer.h"
+#include "RTMediaMetaKeys.h"
 #include "media/mediaplayer.h"
 
 namespace android {
@@ -58,30 +59,30 @@ enum RTTrackType {
 
 /* must keep sync with RTTrackInfor in rockit */
 typedef struct _RockitTrackInfo {
-    int32_t  mCodecType;
-    int32_t  mCodecID;
-    uint32_t mCodecOriginID;
-    int32_t  mIdx;
+    INT32  mCodecType;
+    INT32  mCodecID;
+    UINT32 mCodecOriginID;
+    INT32  mIdx;
 
     /* video track features */
-    int32_t  mWidth;
-    int32_t  mHeight;
-    float    mFrameRate;
+    INT32  mWidth;
+    INT32  mHeight;
+    float  mFrameRate;
 
     /* audio track features*/
-    int64_t  mChannelLayout;
-    int32_t  mChannels;
-    int32_t  mSampleRate;
+    INT64  mChannelLayout;
+    INT32  mChannels;
+    INT32  mSampleRate;
 
     /* subtitle track features*/
 
     /* language */
-    char     lang[16];
-    char     mine[16];
+    char   lang[16];
+    char   mine[16];
 
-    bool     mProbeDisabled;
+    bool   mProbeDisabled;
     /* use reserved first when extend this structure */
-    int8_t   mReserved[64];
+    INT8   mReserved[64];
 } RockitTrackInfor;
 
 RockitPlayer::RockitPlayer()
@@ -130,7 +131,7 @@ status_t RockitPlayer::createPlayer() {
         ALOGE("dlsym for destroy meta data failed, dlerror: %s", dlerror());
     }
 
-    mPlayerImpl = (RTNDKMediaPlayerInterface *)mCreatePlayerFunc();
+    mPlayerImpl = (RTMediaPlayerInterface *)mCreatePlayerFunc();
     if (mPlayerImpl == NULL) {
         ALOGE("create player failed, player is null");
     }
@@ -165,15 +166,10 @@ status_t RockitPlayer::setDataSource(
 
 rt_status RockitPlayer::setDataSource(
             int fd,
-            int64_t offset,
-            int64_t length) {
+            INT64 offset,
+            INT64 length) {
     ALOGV("setDataSource url: fd = %d", fd);
     return mPlayerImpl->setDataSource(fd, offset, length);
-}
-
-rt_status RockitPlayer::setNativeWindow(const void *window) {
-    ALOGV("setNativeWindow window: %p", window);
-    return mPlayerImpl->setVideoSurface(const_cast<void *>(window));
 }
 
 rt_status RockitPlayer::start() {
@@ -211,25 +207,25 @@ bool RockitPlayer::isPlaying() {
     return (mPlayerImpl->getState() == 1 << 4/*RT_STATE_STARTED*/) ? true : false;
 }
 
-rt_status RockitPlayer::seekTo(int32_t msec, uint32_t mode) {
+rt_status RockitPlayer::seekTo(INT32 msec, UINT32 mode) {
     ALOGD("seekTo time: %d, mode: %d", msec, mode);
-    mPlayerImpl->seekTo(((int64_t)msec) * 1000);
+    mPlayerImpl->seekTo(((INT64)msec) * 1000);
     return OK;
 }
 
 rt_status RockitPlayer::getCurrentPosition(int *msec) {
-    int64_t usec = 0;
+    INT64 usec = 0;
     mPlayerImpl->getCurrentPosition(&usec);
     ALOGV("getCurrentPosition usec: %lld in", (long long)usec);
-    *msec = (int32_t)(usec / 1000);
+    *msec = (INT32)(usec / 1000);
     return OK;
 }
 
 rt_status RockitPlayer::getDuration(int *msec) {
-    int64_t usec = 0;
+    INT64 usec = 0;
     mPlayerImpl->getDuration(&usec);
     ALOGV("getDuration usec: %lld in", (long long)usec);
-    *msec = (int32_t)(usec / 1000);
+    *msec = (INT32)(usec / 1000);
     return OK;
 }
 
@@ -239,19 +235,19 @@ rt_status RockitPlayer::reset() {
     return OK;
 }
 
-rt_status RockitPlayer::setLooping(int32_t loop) {
+rt_status RockitPlayer::setLooping(INT32 loop) {
     ALOGV("setLooping loop: %d", loop);
     mPlayerImpl->setLooping(loop);
     return OK;
 }
 
-int32_t RockitPlayer::playerType() {
+INT32 RockitPlayer::playerType() {
     ALOGV("playerType in");
     return 6;
 }
 
-int32_t RockitPlayer::fillInvokeRequest(const Parcel &request, RtMetaData* meta, int32_t& event) {
-    int32_t methodId;
+INT32 RockitPlayer::fillInvokeRequest(const Parcel &request, RtMetaData* meta, INT32& event) {
+    INT32 methodId;
     status_t ret = request.readInt32(&methodId);
     if (ret != OK) {
         return ret;
@@ -269,7 +265,7 @@ int32_t RockitPlayer::fillInvokeRequest(const Parcel &request, RtMetaData* meta,
             int cmd = (methodId == INVOKE_ID_SELECT_TRACK)?
                     RT_INVOKE_ID_SELECT_TRACK:RT_INVOKE_ID_UNSELECT_TRACK;
             meta->setInt32(kUserInvokeCmd, cmd);
-            meta->setInt32(kUserInvokeTrackIdx, index);
+            meta->setInt32(kUserInvokeTracksIdx, index);
         } break;
 
         case INVOKE_ID_SET_VIDEO_SCALING_MODE: {
@@ -291,8 +287,8 @@ int32_t RockitPlayer::fillInvokeRequest(const Parcel &request, RtMetaData* meta,
     return ret;
 }
 
-rt_status RockitPlayer::translateMediaType(int32_t rtMediaType) {
-    int32_t mediaType = MEDIA_TRACK_TYPE_UNKNOWN;
+rt_status RockitPlayer::translateMediaType(INT32 rtMediaType) {
+    INT32 mediaType = MEDIA_TRACK_TYPE_UNKNOWN;
     switch(rtMediaType) {
         case RTTRACK_TYPE_VIDEO:
             mediaType = MEDIA_TRACK_TYPE_VIDEO;
@@ -335,13 +331,13 @@ rt_status RockitPlayer::fillTrackInfoReply(RtMetaData* meta, Parcel* reply) {
     int counter = 0;
     void* tracks = NULL;
 
-    RTBool status = meta->findInt32(kUserInvokeTracksCount, &counter);
-    if(status == RT_FLASE) {
+    RT_BOOL status = meta->findInt32(kUserInvokeTracksCount, &counter);
+    if(status == RT_FALSE) {
         ALOGE("fillTrackInfoReply : not find track in meta,counter = %d", counter);
         return -1;
     }
     status = meta->findPointer(kUserInvokeTracksInfor, &tracks);
-    if(status == RT_FLASE) {
+    if(status == RT_FALSE) {
         ALOGE("fillTrackInfoReply : not find trackInfor in meta");
         return -1;
     }
@@ -351,7 +347,7 @@ rt_status RockitPlayer::fillTrackInfoReply(RtMetaData* meta, Parcel* reply) {
     char desc[100];
     String16 mine, lang;
     RockitTrackInfor* trackInfor = (RockitTrackInfor*)tracks;
-    for (int32_t i = 0; i < counter; ++i) {
+    for (INT32 i = 0; i < counter; ++i) {
         int codecType = translateMediaType(trackInfor[i].mCodecType);
         switch (codecType) {
             case MEDIA_TRACK_TYPE_VIDEO: {
@@ -389,8 +385,8 @@ rt_status RockitPlayer::fillTrackInfoReply(RtMetaData* meta, Parcel* reply) {
 
 rt_status RockitPlayer::fillGetSelectedTrackReply(RtMetaData* meta, Parcel* reply) {
     int idx = 0;
-    RTBool status = meta->findInt32(kUserInvokeGetSelectTrackIdx, &idx);
-    if(status == RT_FLASE) {
+    RT_BOOL status = meta->findInt32(kUserInvokeGetSelectTrack, &idx);
+    if(status == RT_FALSE) {
         ALOGE("fillTrackInfoReply : not find track in meta,counter = %d", idx);
         idx = -1;
     }
@@ -399,7 +395,7 @@ rt_status RockitPlayer::fillGetSelectedTrackReply(RtMetaData* meta, Parcel* repl
     return OK;
 }
 
-rt_status RockitPlayer::fillInvokeReply(int32_t event, RtMetaData* meta, Parcel* reply) {
+rt_status RockitPlayer::fillInvokeReply(INT32 event, RtMetaData* meta, Parcel* reply) {
     rt_status ret = OK;
     switch (event) {
         case INVOKE_ID_GET_TRACK_INFO: {
@@ -423,7 +419,7 @@ rt_status RockitPlayer::invoke(const Parcel &request, Parcel *reply) {
 
     RtMetaData* in = (RtMetaData *)mCreateMetaDataFunc();
     RtMetaData* out = (RtMetaData *)mCreateMetaDataFunc();
-    int32_t event = -1;
+    INT32 event = -1;
     // tranlate cmd to rockit can understand
     fillInvokeRequest(request, in, event);
 
@@ -438,23 +434,24 @@ rt_status RockitPlayer::invoke(const Parcel &request, Parcel *reply) {
     return OK;
 }
 
-void RockitPlayer::setAudioSink(const void *audioSink) {
-    ALOGV("setAudioSink audioSink: %p", audioSink);
-    mPlayerImpl->setAudioSink(audioSink);
-}
-void RockitPlayer::setSubteSink(const void *subteSink) {
-    ALOGV("setSubteSink subteSink: %p", subteSink);
-    mPlayerImpl->setSubteSink(subteSink);
+rt_status RockitPlayer::setVideoSink(const void *videoSink) {
+    ALOGV("setVideoSink videoSink: %p", videoSink);
+    return mPlayerImpl->setVideoSink(videoSink);
 }
 
-rt_status RockitPlayer::setParameter(int key, const Parcel &request) {
+rt_status RockitPlayer::setAudioSink(const void *audioSink) {
+    ALOGV("setAudioSink audioSink: %p", audioSink);
+    return mPlayerImpl->setAudioSink(audioSink);
+}
+rt_status RockitPlayer::setSubteSink(const void *subteSink) {
+    ALOGV("setSubteSink subteSink: %p", subteSink);
+    return mPlayerImpl->setSubteSink(subteSink);
+}
+
+rt_status RockitPlayer::setParameter(INT32 key, const Parcel &request) {
     (void)request;
     ALOGV("setParameter key: %d", key);
     return OK;
-}
-
-rt_status RockitPlayer::setNativeWindowCallback(void *callback) {
-    return mPlayerImpl->setVideoSurfaceCB(callback);
 }
 
 rt_status RockitPlayer::setListener(RTPlayerListener *listener) {

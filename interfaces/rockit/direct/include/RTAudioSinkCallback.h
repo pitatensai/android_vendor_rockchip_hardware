@@ -17,7 +17,7 @@
 #ifndef ROCKIT_DIRECT_AUDIOSINKCALLBACK_H
 #define ROCKIT_DIRECT_AUDIOSINKCALLBACK_H
 
-#include "RTAudioSinkCBInterface.h"
+#include "RTAudioSinkInterface.h"
 #include "RockitPlayer.h"
 #include <media/AudioTrack.h>
 #include <media/AudioSystem.h>
@@ -32,7 +32,7 @@
 
 namespace android {
 
-class RTAudioSinkCallback : public RTAudioSinkCBInterface {
+class RTAudioSinkCallback : public RTAudioSinkInterface {
 public:
     RTAudioSinkCallback(const sp<MediaPlayerBase::AudioSink> &audioSink);
     virtual ~RTAudioSinkCallback();
@@ -50,7 +50,7 @@ public:
     virtual int32_t getPlaybackRate(RTAudioPlaybackRate *param);
     virtual int32_t setPlaybackRate(const RTAudioPlaybackRate& param);
 
-    virtual int64_t getPlayedOutDurationUs();
+    virtual int64_t getPlaybackDurationUs();
     virtual int32_t setAudioChannel(RTAudioChannel mode);
 
 private:
