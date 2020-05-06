@@ -43,7 +43,7 @@ public:
     virtual int32_t flush();
     virtual int32_t close();
 
-    virtual int32_t write(const void *buffer, int32_t size);
+    virtual int32_t write(const void *buffer, int32_t size, bool block);
 
     virtual int32_t latency();
     virtual int32_t frameSize();

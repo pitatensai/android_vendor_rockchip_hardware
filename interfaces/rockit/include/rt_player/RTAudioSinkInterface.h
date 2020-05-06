@@ -213,7 +213,7 @@ class RTAudioSinkInterface {
     virtual INT32  stop() = 0;
     virtual INT32  flush() = 0;
     virtual INT32  close() = 0;
-    virtual INT32  write(const void *buffer, INT32  size) = 0;
+    virtual INT32  write(const void *buffer, INT32  size, bool block) = 0;
 
     virtual INT32  latency() = 0;
     virtual INT32  frameSize() = 0;

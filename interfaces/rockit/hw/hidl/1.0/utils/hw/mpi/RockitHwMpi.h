@@ -26,6 +26,8 @@ namespace hw {
 namespace V1_0 {
 namespace utils {
 
+using namespace ::android;
+
 class RockitHwMpi : public RockitHwInterface {
 public:
     RockitHwMpi();
@@ -60,7 +62,7 @@ protected:
     int   mWStride;
     int   mHStride;
     bool  mDebug;
-    android::Mutex mLock;
+    Mutex mLock;
 };
 
 }  // namespace utils

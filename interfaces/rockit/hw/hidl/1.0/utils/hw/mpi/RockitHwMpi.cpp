@@ -30,7 +30,6 @@
 
 #include <rockchip/hardware/rockit/hw/1.0/types.h>
 
-using namespace ::android;
 using namespace ::android::hardware;
 using ::rockchip::hardware::rockit::hw::V1_0::RockitHWCtrCmd;
 using ::rockchip::hardware::rockit::hw::V1_0::RockitHWParamPair;
@@ -81,7 +80,7 @@ public:
 public:
     DataBufferCtx();
     ~DataBufferCtx();
-} ;
+};
 
 typedef struct _MpiCodecContext {
     MppCtx              mpp_ctx;
@@ -92,14 +91,14 @@ typedef struct _MpiCodecContext {
      * This buffers are alloced by rockits,
      * commit to decoder(encoder) for keep frames(stream).
      */
-    android::Vector<MppBufferCtx*>* mCommitList;
+    Vector<MppBufferCtx*>* mCommitList;
 
     /*
      * commit buffer list.
      * This buffers are alloced by rockits,
      * commit to decoder(encoder) for keep frames(stream).
      */
-    android::Vector<DataBufferCtx*>* mDataList;
+    Vector<DataBufferCtx*>* mDataList;
 } MpiCodecContext;
 
 DataBufferCtx::DataBufferCtx() {
@@ -232,7 +231,7 @@ void RockitHwMpi::freeDataBuffer(int bufferId) {
             if (buffer && buffer->mUniqueID == bufferId) {
                 ctx->mDataList->removeAt(i);
                 delete buffer;
-                return ;
+                return;
             }
         }
     }
@@ -434,8 +433,8 @@ int RockitHwMpi::init(const RockitHWParamPairs& pairs) {
 
     mpp_buffer_group_clear(ctx->frm_grp);
 
-    ctx->mCommitList = new android::Vector<MppBufferCtx*>;
-    ctx->mDataList = new android::Vector<DataBufferCtx*>;
+    ctx->mCommitList = new Vector<MppBufferCtx*>;
+    ctx->mDataList = new Vector<DataBufferCtx*>;
     assert(ctx->mCommitList != NULL);
     assert(ctx->mDataList != NULL);
 
@@ -704,7 +703,6 @@ __FAILED:
 }
 
 int RockitHwMpi::commitBuffer(const RockitHWBuffer& buffer) {
-    (void)buffer;
     Mutex::Autolock autoLock(mLock);
     MpiCodecContext* ctx = (MpiCodecContext*)mCtx;
     if ((ctx == NULL) || (mDrmFd < 0)) {

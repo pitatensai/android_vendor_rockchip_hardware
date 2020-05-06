@@ -31,7 +31,7 @@ static inline int32_t getAudioSinkPcmMsSetting() {
 
 static inline int32_t getEnableAudioSetting(){
     return property_get_int32(
-            "media.rockit.audio.setting", 0 /* default_value */);
+            "media.rockit.audio.setting", 1 /* default_value */);
 }
 
 RTAudioSinkCallback::RTAudioSinkCallback(const sp<MediaPlayerBase::AudioSink> &audioSink) {
@@ -107,7 +107,7 @@ int32_t RTAudioSinkCallback::latency() {
     return mAudioSink->latency();
 }
 
-int32_t RTAudioSinkCallback::write(const void *buffer, int32_t size) {
+int32_t RTAudioSinkCallback::write(const void *buffer, int32_t size, bool block) {
     ALOGV("RTAudioSinkCallback write audio(data=%p, size=%d)", buffer, size);
     int32_t consumedLen = 0;
     short *pcmData = (short *)buffer;
@@ -127,7 +127,7 @@ int32_t RTAudioSinkCallback::write(const void *buffer, int32_t size) {
             }
         }
     }
-    consumedLen = mAudioSink->write(buffer, size);
+    consumedLen = mAudioSink->write(buffer, size, block);
     return consumedLen;
 }
 
