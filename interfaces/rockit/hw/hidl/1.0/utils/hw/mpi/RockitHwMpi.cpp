@@ -26,6 +26,7 @@
 #include "drm.h"
 #include "drm_mode.h"
 #include <sys/mman.h>
+#include <utils/Vector.h>
 
 #include <rockchip/hardware/rockit/hw/1.0/types.h>
 
@@ -52,6 +53,9 @@ enum _MppBufferSite {
     BUFFER_SITE_BY_ROCKIT = 1,
 } MppBufferSite;
 
+#define DATABUFFERMAX 5
+#define COMMITBUFFERMAX 50
+
 typedef struct _MppBufferCtx {
     /* this fd is mpp can use, and only using in this process*/
     int       mFd;
@@ -63,13 +67,8 @@ typedef struct _MppBufferCtx {
     int       mSite;
 } MppBufferCtx;
 
-#define BUFFERMAX 50
-typedef struct _MppBufferList {
-    int           mCounter;
-    MppBufferCtx  mMap[BUFFERMAX];
-} MppBufferList;
-
-typedef struct _DataBufferCtx {
+class DataBufferCtx {
+public:
     /* this fd is mpp can use, and only using in this process*/
     int       mFd;
     /* this fd is can use all process */
@@ -78,13 +77,11 @@ typedef struct _DataBufferCtx {
     int       mSize;
     /* who own this buffer */
     int       mSite;
-} DataBufferCtx;
 
-#define DATABUFFERMAX 5
-typedef struct _DataBufferList {
-    int           mCounter;
-    DataBufferCtx mMap[DATABUFFERMAX];
-} DataBufferList;
+public:
+    DataBufferCtx();
+    ~DataBufferCtx();
+} ;
 
 typedef struct _MpiCodecContext {
     MppCtx              mpp_ctx;
@@ -95,15 +92,37 @@ typedef struct _MpiCodecContext {
      * This buffers are alloced by rockits,
      * commit to decoder(encoder) for keep frames(stream).
      */
-    MppBufferList       mList;
+    android::Vector<MppBufferCtx*>* mCommitList;
 
     /*
      * commit buffer list.
      * This buffers are alloced by rockits,
      * commit to decoder(encoder) for keep frames(stream).
      */
-    DataBufferList      mDataList;
+    android::Vector<DataBufferCtx*>* mDataList;
 } MpiCodecContext;
+
+DataBufferCtx::DataBufferCtx() {
+    mFd = -1;
+    mUniqueID = -1;
+    mData = NULL;
+    mSize = 0;
+    mSite = BUFFER_SITE_BY_MPI;
+}
+
+DataBufferCtx::~DataBufferCtx() {
+    if (mData != NULL) {
+        drm_munmap(mData, mSize);
+        mData = NULL;
+    }
+    mSize = 0;
+
+    if (mFd >= 0) {
+        close(mFd);
+        mFd = -1;
+    }
+}
+
 
 /*
  * Des: using mUniqueID to find the mpp buffer
@@ -111,52 +130,19 @@ typedef struct _MpiCodecContext {
  * Param: fd : the unique ID.
  * Return: the index of mpp buffer in MppBufferList
  */
-int RockitHwMpi::findMppBuffer(int fd) {
-    int index = -1;
+void* RockitHwMpi::findMppBuffer(int fd) {
     MpiCodecContext* ctx = (MpiCodecContext*)mCtx;
-    if (ctx != NULL) {
-        for (int i = 0; i < BUFFERMAX; i++) {
-            if (ctx->mList.mMap[i].mUniqueID == fd) {
-                index = i;
-                break;
+    MppBufferCtx* buffer = NULL;
+    if (ctx != NULL && ctx->mCommitList != NULL) {
+        for (int i = 0; i < ctx->mCommitList->size(); i++) {
+            buffer = ctx->mCommitList->editItemAt(i);
+            if (buffer && buffer->mUniqueID == fd) {
+                return (void*)buffer;
             }
         }
     }
 
-    return index;
-}
-
-/*
- * clean all buffer info in list
- */
-void RockitHwMpi::cleanMppBufferList() {
-    MpiCodecContext* ctx = (MpiCodecContext*)mCtx;
-    if (ctx != NULL) {
-        ctx->mList.mCounter = 0;
-        for (int i = 0; i < BUFFERMAX; i++) {
-            ctx->mList.mMap[i].mFd = -1;
-            ctx->mList.mMap[i].mUniqueID = -1;
-            ctx->mList.mMap[i].mMppBuffer = NULL;
-            ctx->mList.mMap[i].mSite = BUFFER_SITE_BY_MPI;
-        }
-    }
-}
-
-/*
- * find index of list to store buffer info
- */
-int RockitHwMpi::findMppBufferIndexUnused() {
-    MpiCodecContext* ctx = (MpiCodecContext*)mCtx;
-    if (ctx != NULL) {
-        for (int i = 0; i < BUFFERMAX; i++) {
-            if ((ctx->mList.mMap[i].mSite == BUFFER_SITE_BY_MPI)
-                && (ctx->mList.mMap[i].mUniqueID == -1)) {
-                return i;
-            }
-        }
-    }
-
-    return -1;
+    return NULL;
 }
 
 /*
@@ -165,66 +151,89 @@ int RockitHwMpi::findMppBufferIndexUnused() {
 void RockitHwMpi::cleanMppBuffer() {
     MpiCodecContext* ctx = (MpiCodecContext*)mCtx;
     if (ctx != NULL) {
-        for (int i = 0; i < BUFFERMAX; i++) {
-            if (ctx->mList.mMap[i].mSite == BUFFER_SITE_BY_MPI) {
-                ctx->mList.mMap[i].mFd = -1;
-                ctx->mList.mMap[i].mUniqueID = -1;
-                ctx->mList.mMap[i].mMppBuffer = NULL;
-                ctx->mList.mMap[i].mSite = BUFFER_SITE_BY_MPI;
+        while (ctx->mCommitList != NULL && !ctx->mCommitList->isEmpty()) {
+            MppBufferCtx* buffer = ctx->mCommitList->editItemAt(0);
+            if (buffer != NULL)
+                delete buffer;
 
-                ctx->mList.mCounter--;
+            ctx->mCommitList->removeAt(0);
+        }
+    }
+}
+
+void RockitHwMpi::cleanMppBuffer(int site) {
+    MpiCodecContext* ctx = (MpiCodecContext*)mCtx;
+    dumpMppBufferList();
+    if (ctx != NULL && ctx->mCommitList != NULL) {
+        for (int i = ctx->mCommitList->size()-1; i >= 0; i--) {
+            MppBufferCtx* buffer = ctx->mCommitList->editItemAt(i);
+            if (buffer != NULL && buffer->mSite == site) {
+                delete buffer;
+                ctx->mCommitList->removeAt(i);
+            }
+        }
+
+        if (mDebug) {
+            for (int i = 0; i < ctx->mCommitList->size(); i++) {
+                MppBufferCtx* buffer = ctx->mCommitList->editItemAt(i);
+                if (buffer != NULL ) {
+                     ALOGD("%s: left i = %d, mUniqueID = %d, fd = %d",
+                        __FUNCTION__, i, buffer->mUniqueID, buffer->mFd);
+                }
             }
         }
     }
 }
 
-int RockitHwMpi::findDataBuffer(int fd) {
-    int index = -1;
+
+void* RockitHwMpi::findDataBuffer(int fd) {
     MpiCodecContext* ctx = (MpiCodecContext*)mCtx;
     if (ctx != NULL) {
-        for (int i = 0; i < ctx->mDataList.mCounter; i++) {
-            if (ctx->mDataList.mMap[i].mUniqueID == fd) {
-                index = i;
-                break;
+        DataBufferCtx* buffer = NULL;
+        for (int i = 0; i < ctx->mDataList->size(); i++) {
+            buffer = ctx->mDataList->editItemAt(0);
+            if (buffer && buffer->mUniqueID == fd) {
+                return (void*)buffer;
             }
         }
     }
 
-    return index;
+    return NULL;
 }
 
 int RockitHwMpi::addDataBufferList(int uniquefd, int mapfd,void* data, int size) {
     MpiCodecContext* ctx = (MpiCodecContext*)mCtx;
-    if (ctx != NULL) {
-        int i = ctx->mDataList.mCounter;
-        if (i >= DATABUFFERMAX) {
-            ALOGD("%s: mDataList is full", __FUNCTION__);
-            return -1;
+    if (ctx != NULL && ctx->mDataList != NULL) {
+        if (ctx->mDataList->size() >= DATABUFFERMAX) {
+            ALOGD("%s: mDataList is full, size = %d", __FUNCTION__, (int)ctx->mDataList->size());
         }
-        ALOGE("%s: mUniqueID = %d, mapfd = %d, data = %p", __FUNCTION__, uniquefd, mapfd, data);
-        ctx->mDataList.mCounter ++;
-        ctx->mDataList.mMap[i].mFd = mapfd;
-        ctx->mDataList.mMap[i].mUniqueID = uniquefd;
-        ctx->mDataList.mMap[i].mData = data;
-        ctx->mDataList.mMap[i].mSize = size;
-        ctx->mDataList.mMap[i].mSite = BUFFER_SITE_BY_MPI;
 
+        ALOGD("%s: mUniqueID = %d, mapfd = %d, data = %p", __FUNCTION__, uniquefd, mapfd, data);
+        DataBufferCtx* buffer = new DataBufferCtx();
+        assert(buffer != NULL);
+        buffer->mFd = mapfd;
+        buffer->mUniqueID = uniquefd;
+        buffer->mData = data;
+        buffer->mSize = size;
+        buffer->mSite = BUFFER_SITE_BY_MPI;
+        ctx->mDataList->push(buffer);
         return 0;
     }
 
     return -1;
 }
 
-void RockitHwMpi::cleanDataBufferList() {
+void RockitHwMpi::freeDataBuffer(int bufferId) {
     MpiCodecContext* ctx = (MpiCodecContext*)mCtx;
-    if (ctx != NULL) {
-        ctx->mDataList.mCounter = 0;
-        for (int i = 0; i < DATABUFFERMAX; i++) {
-            ctx->mDataList.mMap[i].mFd = -1;
-            ctx->mDataList.mMap[i].mUniqueID = -1;
-            ctx->mDataList.mMap[i].mData = NULL;
-            ctx->mDataList.mMap[i].mSize = 0;
-            ctx->mDataList.mMap[i].mSite = BUFFER_SITE_BY_MPI;
+    ALOGD("%s: size = %d, bufferId = %d", __FUNCTION__, (int)ctx->mDataList->size(), bufferId);
+    if (ctx != NULL && ctx->mDataList != NULL) {
+        for (int i = 0; i < ctx->mDataList->size(); i++){
+            DataBufferCtx* buffer = ctx->mDataList->editItemAt(i);
+            if (buffer && buffer->mUniqueID == bufferId) {
+                ctx->mDataList->removeAt(i);
+                delete buffer;
+                return ;
+            }
         }
     }
 }
@@ -232,30 +241,25 @@ void RockitHwMpi::cleanDataBufferList() {
 void RockitHwMpi::freeDataBufferList() {
     MpiCodecContext* ctx = (MpiCodecContext*)mCtx;
     if (ctx != NULL) {
-        for (int i = 0; i < DATABUFFERMAX; i++) {
-            void* data = ctx->mDataList.mMap[i].mData;
-            int size = ctx->mDataList.mMap[i].mSize;
-            if (data != NULL) {
-                drm_munmap(data, size);
-                data = NULL;
+        while (ctx->mDataList != NULL && !ctx->mDataList->isEmpty()) {
+            DataBufferCtx* buffer = ctx->mDataList->editItemAt(0);
+            if (buffer) {
+                delete buffer;
             }
-            if (ctx->mDataList.mMap[i].mFd >= 0) {
-                close(ctx->mDataList.mMap[i].mFd);
-            }
+            ctx->mDataList->removeAt(0);
         }
-        cleanDataBufferList();
     }
 }
 
-
-
 void RockitHwMpi::dumpMppBufferList() {
     MpiCodecContext* ctx = (MpiCodecContext*)mCtx;
-    if (ctx != NULL) {
-        for (int i = 0; i < ctx->mList.mCounter; i++) {
-            ALOGD("%s this = %p, i = %d, map fd = %d, mUniqueID = %d, mMppBuffer = %p, mSite = %d",
-                __FUNCTION__, this, i, ctx->mList.mMap[i].mFd, ctx->mList.mMap[i].mUniqueID,
-                ctx->mList.mMap[i].mMppBuffer, ctx->mList.mMap[i].mSite);
+    if (ctx != NULL && ctx->mCommitList != NULL) {
+        for (int i = 0; i < ctx->mCommitList->size(); i++) {
+            MppBufferCtx* buffer = ctx->mCommitList->editItemAt(i);
+            if (buffer != NULL)
+                ALOGD("%s this = %p, i = %d, map fd = %d, mUniqueID = %d, mMppBuffer = %p, mSite = %d",
+                    __FUNCTION__, this, i, buffer->mFd, buffer->mUniqueID,
+                    buffer->mMppBuffer, buffer->mSite);
         }
     }
 }
@@ -280,6 +284,7 @@ RockitHwMpi::~RockitHwMpi() {
     if (mCtx != NULL) {
         reset();
         freeDataBufferList();
+        cleanMppBuffer();
         MpiCodecContext* ctx = (MpiCodecContext*)mCtx;
         if (ctx->frm_grp != NULL) {
             mpp_buffer_group_put(ctx->frm_grp);
@@ -289,6 +294,15 @@ RockitHwMpi::~RockitHwMpi() {
         if (ctx->mpp_ctx != NULL) {
             mpp_destroy(ctx->mpp_ctx);
             ctx->mpp_ctx = NULL;
+        }
+
+        if (ctx->mDataList != NULL) {
+            delete ctx->mDataList;
+            ctx->mDataList = NULL;
+        }
+        if (ctx->mCommitList != NULL) {
+            delete ctx->mCommitList;
+            ctx->mCommitList = NULL;
         }
 
         free(ctx);
@@ -317,6 +331,7 @@ int RockitHwMpi::init(const RockitHWParamPairs& pairs) {
     uint32_t            timeMode = 0;
     uint32_t            debug = 0;
 
+    Mutex::Autolock autoLock(mLock);
     MpiCodecContext* ctx = (MpiCodecContext*)malloc(sizeof(MpiCodecContext));
     if (ctx == NULL) {
         ALOGD("%s:%d malloc fail", __FUNCTION__, __LINE__);
@@ -419,10 +434,12 @@ int RockitHwMpi::init(const RockitHWParamPairs& pairs) {
 
     mpp_buffer_group_clear(ctx->frm_grp);
 
-    mCtx = (void*)ctx;
+    ctx->mCommitList = new android::Vector<MppBufferCtx*>;
+    ctx->mDataList = new android::Vector<DataBufferCtx*>;
+    assert(ctx->mCommitList != NULL);
+    assert(ctx->mDataList != NULL);
 
-    cleanMppBufferList();
-    cleanDataBufferList();
+    mCtx = (void*)ctx;
     return 0;
 
 FAIL:
@@ -440,6 +457,7 @@ FAIL:
 }
 
 int RockitHwMpi::enqueue(const RockitHWBuffer& buffer) {
+    Mutex::Autolock autoLock(mLock);
     if (mCtx == NULL || mDrmFd < 0) {
         return -1;
     }
@@ -474,8 +492,8 @@ int RockitHwMpi::enqueue(const RockitHWBuffer& buffer) {
   //  newbuffer = (flags & (uint32_t)RockitHWBufferFlags::HW_FLAGS_NEW_HW_BUFFER);
 
     if (!eos) {
-        int index = findDataBuffer((int)buffer.bufferId);
-        if (index < 0) {
+        DataBufferCtx* bufferCtx = (DataBufferCtx*)findDataBuffer((int)buffer.bufferId);
+        if (bufferCtx == NULL) {
             ret = drm_get_info_from_name(mDrmFd, (int)buffer.bufferId, &handle, &size);
             if (ret < 0) {
                 ALOGE("%s: drm_get_info_from_name fail", __FUNCTION__);
@@ -495,7 +513,7 @@ int RockitHwMpi::enqueue(const RockitHWBuffer& buffer) {
                 goto EXIT;
             }
         } else {
-            data = ctx->mDataList.mMap[index].mData;
+            data = bufferCtx->mData;
         }
     } else {
         data = NULL;
@@ -548,6 +566,7 @@ EXIT:
 }
 
 int RockitHwMpi::dequeue(RockitHWBuffer& hwBuffer) {
+    Mutex::Autolock autoLock(mLock);
     MpiCodecContext* ctx = (MpiCodecContext*)mCtx;
     if ((ctx == NULL) || (mDrmFd < 0)) {
         ALOGE("%s ctx = NULL", __FUNCTION__);
@@ -603,10 +622,12 @@ int RockitHwMpi::dequeue(RockitHWBuffer& hwBuffer) {
         if (buffer) {
             mpp_buffer_info_get(buffer, &info);
             hwBuffer.bufferId = info.index;
-            int index = findMppBuffer(hwBuffer.bufferId);
-            if (index >= 0) {
-                ctx->mList.mMap[index].mSite = BUFFER_SITE_BY_ROCKIT;
-                fd = ctx->mList.mMap[index].mFd;
+            {
+                MppBufferCtx* bufferCtx = (MppBufferCtx*)findMppBuffer(hwBuffer.bufferId);
+                if (bufferCtx != NULL) {
+                    bufferCtx->mSite = BUFFER_SITE_BY_ROCKIT;
+                    fd = bufferCtx->mFd;
+                }
             }
         } else if (infochange || eos) {
             // info change or eos will reciver a empty buffer
@@ -684,6 +705,7 @@ __FAILED:
 
 int RockitHwMpi::commitBuffer(const RockitHWBuffer& buffer) {
     (void)buffer;
+    Mutex::Autolock autoLock(mLock);
     MpiCodecContext* ctx = (MpiCodecContext*)mCtx;
     if ((ctx == NULL) || (mDrmFd < 0)) {
         ALOGE("%s ctx = NULL", __FUNCTION__);
@@ -696,6 +718,7 @@ int RockitHwMpi::commitBuffer(const RockitHWBuffer& buffer) {
     int map_fd = -1;
     int size = 0;
     int ret = 0;
+    MppBufferCtx* bufferCtx = NULL;
 
     memset(&info, 0, sizeof(MppBufferInfo));
     /* convert buffer's name to handle */
@@ -728,16 +751,18 @@ int RockitHwMpi::commitBuffer(const RockitHWBuffer& buffer) {
             __FUNCTION__, this, info.fd, map_fd, buffer.bufferId, (int)info.size, mppBuffer);
     }
 
-    if (findMppBuffer(buffer.bufferId) < 0) {
-        int index = findMppBufferIndexUnused();
-        if (index >= 0) {
-            ctx->mList.mMap[index].mFd = info.fd;
-            ctx->mList.mMap[index].mUniqueID = buffer.bufferId;
-            ctx->mList.mMap[index].mMppBuffer = mppBuffer;
-            ctx->mList.mMap[index].mSite = BUFFER_SITE_BY_MPI;
-            ctx->mList.mCounter ++;
-        } else {
-            ALOGE("%s: add buffer fail, mCounter = %d", __FUNCTION__, ctx->mList.mCounter);
+    bufferCtx = (MppBufferCtx*)findMppBuffer(buffer.bufferId);
+    if (bufferCtx == NULL) {
+        bufferCtx = new MppBufferCtx();
+        bufferCtx->mFd = info.fd;
+        bufferCtx->mUniqueID = buffer.bufferId;
+        bufferCtx->mMppBuffer = mppBuffer;
+        bufferCtx->mSite = BUFFER_SITE_BY_MPI;
+        ctx->mCommitList->push(bufferCtx);
+
+        if (ctx->mCommitList->size() >= COMMITBUFFERMAX) {
+            ALOGE("%s:%d too many buffer in list", __FUNCTION__, __LINE__);
+            dumpMppBufferList();
         }
     } else {
         ALOGE("%s:%d add buffer fail, already in it", __FUNCTION__, __LINE__);
@@ -767,19 +792,20 @@ __FAILED:
 }
 
 int RockitHwMpi::giveBackBuffer(const RockitHWBuffer& buffer) {
+    Mutex::Autolock autoLock(mLock);
     MpiCodecContext* ctx = (MpiCodecContext*)mCtx;
     if (ctx == NULL) {
         return -1;
     }
 
     int fd = buffer.bufferId;
-    int index = findMppBuffer(fd);
-    if (index >= 0) {
-        MppBuffer mppBuffer = ctx->mList.mMap[index].mMppBuffer;
-        ctx->mList.mMap[index].mSite = BUFFER_SITE_BY_MPI;
+    MppBufferCtx* bufferCtx = (MppBufferCtx*)findMppBuffer(fd);
+    if (bufferCtx != NULL) {
+        MppBuffer mppBuffer = bufferCtx->mMppBuffer;
+        bufferCtx->mSite = BUFFER_SITE_BY_MPI;
         if (mDebug) {
             ALOGE("%s this = %p, mUniqueID = %d, mFd = %d, mppBuffer = %p",
-                __FUNCTION__, this, fd, ctx->mList.mMap[index].mFd, mppBuffer);
+                __FUNCTION__, this, fd, bufferCtx->mFd, mppBuffer);
         }
         if (mppBuffer != NULL) {
             mpp_buffer_put(mppBuffer);
@@ -802,6 +828,7 @@ int RockitHwMpi::process(const RockitHWBufferList& list) {
 }
 
 int RockitHwMpi::reset() {
+    Mutex::Autolock autoLock(mLock);
     if (mCtx == NULL) {
         return -1;
     }
@@ -830,12 +857,13 @@ int RockitHwMpi::flush() {
 }
 
 int RockitHwMpi::control(int cmd, const RockitHWParamPairs& param) {
+    Mutex::Autolock autoLock(mLock);
     int ret = 0;
     if (mCtx == NULL) {
         return -1;
     }
 
-    (void)param;
+    RockitHWParamPairs pairs = (RockitHWParamPairs)param;
     RockitHWCtrCmd event = (RockitHWCtrCmd)cmd;
     MpiCodecContext* ctx = (MpiCodecContext*)mCtx;
     switch (event) {
@@ -845,7 +873,7 @@ int RockitHwMpi::control(int cmd, const RockitHWParamPairs& param) {
                 dumpMppBufferList();
             }
             freeDataBufferList();
-            cleanMppBuffer();
+            cleanMppBuffer(BUFFER_SITE_BY_MPI);
             mpp_buffer_group_clear(ctx->frm_grp);
             break;
         case RockitHWCtrCmd::HW_CMD_BUFFER_READY:
@@ -854,6 +882,14 @@ int RockitHwMpi::control(int cmd, const RockitHWParamPairs& param) {
             }
             ret = bufferReady();
             break;
+        case RockitHWCtrCmd::HW_CMD_BUFFER_DATA_CLEAR: {
+                if (mDebug) {
+                    ALOGD("%s: HW_CMD_BUFFER_DATA_CLEAR", __FUNCTION__);
+                }
+
+                int buffer_id = (int)getValue(pairs, (uint32_t)RockitHWParamKey::HW_KEY_DATA_BUFFER);
+                freeDataBuffer(buffer_id);
+            } break;
         default:
             ALOGE("%s: cmd = %d not support", __FUNCTION__, cmd);
             ret = -1;
@@ -864,6 +900,7 @@ int RockitHwMpi::control(int cmd, const RockitHWParamPairs& param) {
 }
 
 int RockitHwMpi::query(int cmd, RockitHWParamPairs& out) {
+    Mutex::Autolock autoLock(mLock);
     int result = 0;
     if (mCtx == NULL) {
         return -1;

@@ -17,6 +17,7 @@
 #define ANDROID_ROCKIT_HW_MPI_H
 
 #include "RockitHwInterface.h"
+#include "utils/Mutex.h"
 
 namespace rockchip {
 namespace hardware {
@@ -42,16 +43,15 @@ public:
     virtual int reset();
 
 protected:
-    virtual int findMppBuffer(int fd);
-    virtual int findDataBuffer(int fd);
-    virtual int findMppBufferIndexUnused();
-    virtual void cleanMppBufferList();
+    virtual void* findMppBuffer(int fd);
+    virtual void* findDataBuffer(int fd);
     virtual void cleanMppBuffer();
-    virtual void cleanDataBufferList();
+    virtual void cleanMppBuffer(int site);
     virtual void dumpMppBufferList();
     virtual int bufferReady();
     virtual int addDataBufferList(int fd, int mapfd, void* data, int size);
     virtual void freeDataBufferList();
+    virtual void freeDataBuffer(int idx);
 protected:
     void* mCtx;
     void* mInput;
@@ -60,6 +60,7 @@ protected:
     int   mWStride;
     int   mHStride;
     bool  mDebug;
+    android::Mutex mLock;
 };
 
 }  // namespace utils
