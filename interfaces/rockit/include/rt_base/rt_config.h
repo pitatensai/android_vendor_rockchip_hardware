@@ -17,8 +17,8 @@
  *   date: 20180704
  */
 
-#ifndef INCLUDE_RT_CONFIG_H_
-#define INCLUDE_RT_CONFIG_H_
+#ifndef INCLUDE_RT_BASE_RT_CONFIG_H_
+#define INCLUDE_RT_BASE_RT_CONFIG_H_
 
 /*
  * build configurations for windows operation system
@@ -38,4 +38,4 @@
 
 #endif  // OS_ANDROID
 
-#endif  // INCLUDE_RT_CONFIG_H_
+#endif  // INCLUDE_RT_BASE_RT_CONFIG_H_

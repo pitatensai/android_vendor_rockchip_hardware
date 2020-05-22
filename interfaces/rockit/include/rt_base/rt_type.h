@@ -17,8 +17,8 @@
  *   date: 20180704
  */
 
-#ifndef INCLUDE_RT_TYPE_H_
-#define INCLUDE_RT_TYPE_H_
+#ifndef INCLUDE_RT_BASE_RT_TYPE_H_
+#define INCLUDE_RT_BASE_RT_TYPE_H_
 
 #include <stdint.h>
 
@@ -82,4 +82,12 @@ typedef float        RT_FLOAT;
 #define RT_RB(type, x)     (((const type*)(x))[0])
 #define RT_WB(type, p, d)  do { ((type*)(p))[0] = (d); } while (0)   // NOLINT
 
-#endif  // INCLUDE_RT_TYPE_H_
+typedef struct _RTRect {
+    INT32 left;
+    INT32 top;
+    INT32 right;
+    INT32 bottom;
+} RTRect;
+
+
+#endif  // INCLUDE_RT_BASE_RT_TYPE_H_

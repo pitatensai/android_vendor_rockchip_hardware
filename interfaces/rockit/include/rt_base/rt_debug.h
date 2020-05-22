@@ -17,8 +17,8 @@
  *   date: 20180704
  */
 
-#ifndef INCLUDE_RT_DEBUG_H_
-#define INCLUDE_RT_DEBUG_H_
+#ifndef INCLUDE_RT_BASE_RT_DEBUG_H_
+#define INCLUDE_RT_BASE_RT_DEBUG_H_
 
 #include <assert.h>
 #include "rt_log.h"      // NOLINT
@@ -51,4 +51,4 @@
     #define RT_ASSERT_RESULT(cond)
 #endif
 
-#endif  // INCLUDE_RT_DEBUG_H_
+#endif  // INCLUDE_RT_BASE_RT_DEBUG_H_

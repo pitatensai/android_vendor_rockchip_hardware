@@ -17,8 +17,8 @@
  *   date: 20181102
  */
 
-#ifndef INCLUDE_RT_CHECK_H_
-#define INCLUDE_RT_CHECK_H_
+#ifndef INCLUDE_RT_BASE_RT_CHECK_H_
+#define INCLUDE_RT_BASE_RT_CHECK_H_
 
 #define CHECK_OP(name, op, actual, exp) \
     do { \
@@ -42,4 +42,4 @@
 
 #define CHECK_IS_NULL(value) CHECK_OP("CHECK_IS_NULL", !=, value, RT_NULL)
 
-#endif  // INCLUDE_RT_CHECK_H_
+#endif  // INCLUDE_RT_BASE_RT_CHECK_H_

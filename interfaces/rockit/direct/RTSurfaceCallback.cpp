@@ -24,6 +24,7 @@
 #include <system/window.h>
 #include <gui/Surface.h>
 #include "RTSurfaceCallback.h"
+#include "RTChips.h"
 #include "RockitPlayer.h"
 #include "sideband/RTSidebandWindow.h"
 extern "C" {
@@ -35,6 +36,23 @@ extern "C" {
 using namespace ::android;
 
 static const char *DRM_DEV_PATH = "/dev/dri/card0";
+
+// dmaType -1: unknown 0: drm 1: ion
+static bool matchIonPlaform() {
+    static INT32 dmaType = -1;
+
+    if (dmaType < 0) {
+        RKChipInfo *chipInfo = getChipName();
+        if (chipInfo != NULL && (chipInfo->type == RK_CHIP_3368 ||
+            chipInfo->type == RK_CHIP_3368H)) {
+            dmaType = 1;
+        } else {
+            dmaType = 0;
+        }
+    }
+
+    return (dmaType == 1);
+}
 
 INT32 drm_open() {
     INT32 fd = open(DRM_DEV_PATH, O_RDWR);
@@ -53,6 +71,18 @@ INT32 drm_close(INT32 fd) {
 
     return ret;
 }
+
+inline void *drm_mmap(void *addr, UINT32 length, INT32 prot,
+                      INT32 flags, INT32 fd, loff_t offset) {
+    /* offset must be aligned to 4096 (not necessarily the page size) */
+    if (offset & 4095) {
+        errno = EINVAL;
+        return MAP_FAILED;
+    }
+
+    return mmap64(addr, length, prot, flags, fd, offset);
+}
+
 
 INT32 drm_ioctl(INT32 fd, INT32 req, void* arg) {
     INT32 ret = ioctl(fd, req, arg);
@@ -116,6 +146,61 @@ INT32 drm_handle_to_fd(INT32 fd, UINT32 handle, INT32 *map_fd, UINT32 flags) {
     }
 
     return ret;
+}
+
+INT32 drm_map(INT32 fd, INT32 share_fd, UINT32 length, INT32 prot,INT32 flags, INT32 offset, void **ptr, UINT32 heaps) {
+    INT32 ret;
+    static UINT32 pagesize_mask = 0;
+    struct drm_mode_map_dumb dmmd;
+    UINT32 handle;
+    (void)offset;
+    (void)heaps;
+
+    if (fd <= 0)
+        return -EINVAL;
+    if (ptr == NULL)
+        return -EINVAL;
+
+    if (!pagesize_mask)
+        pagesize_mask = sysconf(_SC_PAGESIZE) - 1;
+
+    length = (length + pagesize_mask) & ~pagesize_mask;
+
+    drm_fd_to_handle(fd, share_fd, &handle, 0);
+    memset(&dmmd, 0, sizeof(dmmd));
+    dmmd.handle = (UINT32)handle;
+
+    ret = drm_ioctl(fd, DRM_IOCTL_MODE_MAP_DUMB, &dmmd);
+    if (ret) {
+        ALOGE("map_dumb failed: %s\n", strerror(ret));
+        return ret;
+    }
+    *ptr = drm_mmap(NULL, length, prot, flags, fd, dmmd.offset);
+
+    if (*ptr == MAP_FAILED) {
+        ALOGD("fail to drm_mmap(fd = %d), error: %s", fd, strerror(errno));
+        ret = -errno;
+    }
+
+    return ret;
+}
+
+INT32 ion_map(INT32 fd, UINT32 length, INT32 prot, INT32 flags, off_t offset, void **ptr) {
+    static UINT32 pagesize_mask = 0;
+    if (ptr == NULL)
+        return -EINVAL;
+
+    if (!pagesize_mask)
+        pagesize_mask = sysconf(_SC_PAGESIZE) - 1;
+    offset = offset & (~pagesize_mask);
+
+    *ptr = mmap(NULL, length, prot, flags, fd, offset);
+    if (*ptr == MAP_FAILED) {
+        ALOGE("fail to mmap(fd = %d), error:%s", fd, strerror(errno));
+        *ptr = NULL;
+        return -errno;
+    }
+    return 0;
 }
 
 RTSurfaceCallback::RTSurfaceCallback(const sp<ANativeWindow> &nativeWindow)
@@ -280,6 +365,52 @@ INT32 RTSurfaceCallback::dequeueBufferAndWait(RTNativeWindowBufferInfo *info) {
         info->name = req.name;
         info->dupFd = priv_hnd.share_fd;
     }
+    return ret;
+}
+
+INT32 RTSurfaceCallback::mmapBuffer(INT32 shareFd, INT32 size, INT32 offset, void **ptr) {
+    INT32 err = 0;
+    RT_RET ret = RT_OK;
+    (void)offset;
+
+    void *tmpPtr = NULL;
+
+    if (shareFd <= 0 || size <= 0 || ptr == NULL) {
+        ALOGE("map input bad value, handle=%d, size=%d, &ptr=%p", shareFd, size, ptr);
+        ret = RT_ERR_VALUE;
+        goto __FAILED;
+    }
+
+    if (matchIonPlaform()) {
+        err = ion_map(shareFd, size, PROT_READ | PROT_WRITE, MAP_SHARED, 0, &tmpPtr);
+    } else {
+        err = drm_map(mDrmFd, shareFd, size, PROT_READ | PROT_WRITE, MAP_SHARED, 0, &tmpPtr, 0);
+    }
+
+    if (err) {
+        ret = RT_ERR_UNKNOWN;
+        goto __FAILED;
+    }
+
+    *ptr = tmpPtr;
+
+__FAILED:
+    return ret;
+}
+
+INT32 RTSurfaceCallback::munmapBuffer(void **ptr, INT32 size) {
+    RT_RET ret = RT_OK;
+
+    if (size <= 0 || ptr == NULL) {
+        ALOGE("ummap input bad value, size=%d, &ptr=%p", size, ptr);
+        ret = RT_ERR_VALUE;
+        goto __FAILED;
+    }
+
+    munmap(*ptr, size);
+    *ptr = NULL;
+
+__FAILED:
     return ret;
 }
 

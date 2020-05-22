@@ -17,16 +17,17 @@
  *   date: 20180704
  */
 
-#ifndef INCLUDE_RT_BASE_HEADER_H_
-#define INCLUDE_RT_BASE_HEADER_H_
+#ifndef INCLUDE_RT_BASE_RT_HEADER_H_
+#define INCLUDE_RT_BASE_RT_HEADER_H_
 
-/*header in src/rt_base/include*/
+#include "rt_error.h"  // NOLINT
+#include "rt_type.h"   // NOLINT
+#include "rt_debug.h"  // NOLINT
 #include "rt_common.h" // NOLINT
-#include "rt_dequeue.h" // NOLINT
-#include "rt_log.h" // NOLINT
-#include "rt_mem.h" // NOLINT
-#include "rt_mutex.h" // NOLINT
-#include "rt_thread.h" // NOLINT
-#include "rt_time.h" // NOLINT
+#include "rt_log.h"    // NOLINT
+#include "rt_time.h"   // NOLINT
+#include "rt_mem.h"    // NOLINT
+#include "rt_mutex.h"  // NOLINT
+#include "rt_check.h"  // NOLINT
 
-#endif  // INCLUDE_RT_BASE_HEADER_H_
+#endif  // INCLUDE_RT_BASE_RT_HEADER_H_

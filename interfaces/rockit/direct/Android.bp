@@ -9,6 +9,7 @@ cc_library_shared {
         "RTAudioSinkCallback.cpp",
         "RTGraphicWindowApi.cpp",
         "RTSubtitleSink.cpp",
+        "RTChips.cpp",
         "sideband/RTSidebandWindow.cpp",
         "sideband/DrmVopRender.cpp",
         "sideband/MessageThread.cpp",

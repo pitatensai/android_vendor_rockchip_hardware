@@ -17,8 +17,8 @@
  *   date: 20181102
  */
 
-#ifndef INCLUDE_RT_TEST_HEADER_H_
-#define INCLUDE_RT_TEST_HEADER_H_
+#ifndef INCLUDE_RT_BASE_RT_TEST_HEADER_H_
+#define INCLUDE_RT_BASE_RT_TEST_HEADER_H_
 
 #include "rt_error.h" // NOLINT
 #include "rt_type.h"  // NOLINT
@@ -67,4 +67,4 @@ RT_RET          rt_tests_run_uri(RtTestCtx *ctx, RT_BOOL mem_dump, char *uri);
 
 RT_RET          rt_tests_deinit(RtTestCtx **ctx);
 
-#endif  // INCLUDE_RT_TEST_HEADER_H_
+#endif  // INCLUDE_RT_BASE_RT_TEST_HEADER_H_

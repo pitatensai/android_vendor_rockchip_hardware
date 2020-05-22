@@ -44,6 +44,8 @@ class RTSurfaceCallback : public RTSurfaceInterface {
     virtual INT32 queueBuffer(void *buf, INT32 fence);
     virtual INT32 dequeueBuffer(void **buf);
     virtual INT32 dequeueBufferAndWait(RTNativeWindowBufferInfo *info);
+    virtual INT32 mmapBuffer(INT32 shareFd, INT32 size, INT32 offset, void **ptr);
+    virtual INT32 munmapBuffer(void **ptr, INT32 size);
 
     virtual INT32 setCrop(INT32 left, INT32 top, INT32 right, INT32 bottom);
     virtual INT32 setUsage(INT32 usage);

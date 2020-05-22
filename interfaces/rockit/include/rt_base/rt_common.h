@@ -17,8 +17,8 @@
  *   date: 20180704
  */
 
-#ifndef INCLUDE_RT_COMMON_H_
-#define INCLUDE_RT_COMMON_H_
+#ifndef INCLUDE_RT_BASE_RT_COMMON_H_
+#define INCLUDE_RT_BASE_RT_COMMON_H_
 
 #define RT_TAG_SIZE            32
 
@@ -71,4 +71,7 @@
 
 #define RT_PTS_IS_VALID(pts)    (pts != RT_NOPTS_VALUE)
 
-#endif  // INCLUDE_RT_COMMON_H_
+#define RT_FOURCC(f)                                                 \
+    f & 0xFF, (f >> 8) & 0xFF, (f >> 16) & 0xFF, (f >> 24) & 0xFF
+
+#endif  // INCLUDE_RT_BASE_RT_COMMON_H_

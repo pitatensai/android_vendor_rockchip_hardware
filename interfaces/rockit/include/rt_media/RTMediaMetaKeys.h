@@ -64,6 +64,7 @@ enum {
     kKeyVCaptureBufType      = MKTAG('v', 'p', 'b', 't'),  // INT32
     kKeyVCaptureUseLIBV4L2   = MKTAG('v', 'p', 'u', 'v'),  // INT32
     kKeyVCaptureMemType      = MKTAG('v', 'p', 'm', 't'),  // INT32
+    kKeyVCaptureDevice       = MKTAG('v', 'p', 'r', 'd'),  // char
 
     /* video extra features*/
     kKeyVCodecGopSize        = MKTAG('g', 'p', 's', 'z'),  // INT32 encoder feature
