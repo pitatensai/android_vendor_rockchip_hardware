@@ -31,7 +31,7 @@ class RkAudioSettingInterface {
  public:
     RkAudioSettingInterface() {};
     virtual ~RkAudioSettingInterface() {};
-    virtual void init() = 0;
+    virtual int init() = 0;
     virtual int getSelect(int device) = 0;
     virtual void setSelect(int device) = 0;
     virtual void setFormat(int device, int close, const char *format) = 0;

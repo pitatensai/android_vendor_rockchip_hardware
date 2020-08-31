@@ -26,8 +26,20 @@
 namespace android {
 
 RkAudioSetting::RkAudioSetting() {
+    int tryNum = 5;
+    mXMLReady = false;
     mAudioSetting = (RkAudioSettingInterface*) new RkAudioSettingManager();
-    mAudioSetting->init();
+
+    while (tryNum >= 0) {
+        if (mAudioSetting->init() < 0) {
+            ALOGD("try init audiosetting tryNum = %d", tryNum);
+            tryNum--;
+            mXMLReady = false;
+        } else {
+            mXMLReady = true;
+            break;
+        }
+    }
 }
 
 RkAudioSetting::~RkAudioSetting() {
@@ -38,37 +50,51 @@ RkAudioSetting::~RkAudioSetting() {
 }
 
 void RkAudioSetting::setSelect(int device) {
-    mAudioSetting->setSelect(device);
+    if (mXMLReady) {
+        mAudioSetting->setSelect(device);
+    }
 }
 
 void RkAudioSetting::setFormat(int device, int close, const char * format) {
-    mAudioSetting->setFormat(device, close, format);
+    if (mXMLReady) {
+        mAudioSetting->setFormat(device, close, format);
+    }
 }
 
 void RkAudioSetting::setMode(int device, int mode) {
-    mAudioSetting->setMode(device, mode);
+    if (mXMLReady) {
+        mAudioSetting->setMode(device, mode);
+    }
 }
 
 int RkAudioSetting::getSelect(int device) {
-    int val;
-    val = mAudioSetting->getSelect(device);
+    int val = 0;
+    if (mXMLReady) {
+        val = mAudioSetting->getSelect(device);
+    }
     return val;
 }
 
 int RkAudioSetting::getMode(int device) {
-    int val;
-    val = mAudioSetting->getMode(device);
+    int val = 0;
+    if (mXMLReady) {
+        val = mAudioSetting->getMode(device);
+    }
     return val;
 }
 
 int RkAudioSetting::getFormat(int device, const char *format) {
-    int val;
-    val = mAudioSetting->getFormat(device, format);
+    int val = 0;
+    if (mXMLReady) {
+        val = mAudioSetting->getFormat(device, format);
+    }
     return val;
 }
 
 void RkAudioSetting::updataFormatForEdid() {
-    mAudioSetting->updataFormatForEdid();
+    if (mXMLReady) {
+        mAudioSetting->updataFormatForEdid();
+    }
 }
 
 }

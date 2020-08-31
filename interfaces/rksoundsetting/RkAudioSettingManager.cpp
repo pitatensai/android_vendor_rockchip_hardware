@@ -70,7 +70,8 @@ RkAudioSettingManager::~RkAudioSettingManager() {
     }
 }
 
-void RkAudioSettingManager::init() {
+int RkAudioSettingManager::init() {
+    int err = 0;
     if (access(RK_AUDIO_SETTING_CONFIG_FILE, F_OK) < 0) {
 
         if (access(RK_AUDIO_SETTING_TEMP_FILE, F_OK) >= 0) {
@@ -121,10 +122,10 @@ void RkAudioSettingManager::init() {
             }
 
             if (-1 == rename(RK_AUDIO_SETTING_TEMP_FILE, RK_AUDIO_SETTING_CONFIG_FILE)) {
-                ALOGW("rename config file failed");
+                ALOGD("rename config file failed");
                 remove(RK_AUDIO_SETTING_TEMP_FILE);
             } else {
-                ALOGW("rename config file success");
+                ALOGD("rename config file success");
             }
             sync();
         }
@@ -133,10 +134,20 @@ void RkAudioSettingManager::init() {
     const char *errorStr = NULL;
 
     ALOGD("load XML file(%s)", RK_AUDIO_SETTING_CONFIG_FILE);
-    if (!XMLDoc->LoadFile(RK_AUDIO_SETTING_CONFIG_FILE)) {
-        errorStr = XMLDoc->ErrorDesc();
-        ALOGD("load XML file error(%s)", errorStr);
+    if (access(RK_AUDIO_SETTING_CONFIG_FILE, F_OK) >= 0) {
+        if (!XMLDoc->LoadFile(RK_AUDIO_SETTING_CONFIG_FILE)) {
+            errorStr = XMLDoc->ErrorDesc();
+            ALOGD("load XML file error(%s)", errorStr);
+            remove(RK_AUDIO_SETTING_CONFIG_FILE);
+            err = -1;
+        } else {
+            err = 0;
+        }
+    } else {
+        ALOGD("not find XML file %s", RK_AUDIO_SETTING_CONFIG_FILE);
+        err = -1;
     }
+    return err;
 }
 
 int RkAudioSettingManager::getSelectValue(TiXmlElement *elem) {

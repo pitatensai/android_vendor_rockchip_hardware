@@ -37,6 +37,7 @@ class RkAudioSetting {
 
  protected:
     RkAudioSettingInterface  *mAudioSetting;
+    bool  mXMLReady;
 };
 
 }  // namespace android

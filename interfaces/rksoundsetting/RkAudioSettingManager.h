@@ -38,7 +38,7 @@ class RkAudioSettingManager : public RkAudioSettingInterface {
  public:
     RkAudioSettingManager();
     virtual ~RkAudioSettingManager();
-    void init();
+    int init();
     int getSelect(int device);
     void setSelect(int device);
     void setFormat(int device, int close, const char *format);
