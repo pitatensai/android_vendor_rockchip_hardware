@@ -32,6 +32,10 @@ cc_library_shared {
         "libhardware"
     ],
 
+    header_libs: [
+        "libmediametrics_headers",
+    ],
+
     include_dirs: [
         "frameworks/av/include",
         "system/media/audio/include",

@@ -21,6 +21,7 @@
 #include <dlfcn.h>
 #include "RockitPlayer.h"
 #include "RTAudioSinkCallback.h"
+#include "cutils/properties.h"
 
 using namespace ::android;
 

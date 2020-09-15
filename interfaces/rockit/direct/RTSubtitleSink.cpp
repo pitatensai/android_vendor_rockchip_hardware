@@ -21,7 +21,9 @@
 #include "RTGraphicWindowApi.h"
 #include "HdmiDefine.h"
 
-#include <ui/DisplayInfo.h>
+#include <ui/DisplayConfig.h>
+#include <ui/DisplayState.h>
+#include <input/DisplayViewport.h>
 #include <utils/Log.h>
 #include <cutils/properties.h> // for property_get
 
@@ -87,10 +89,6 @@ void RTSubteSink::destroy() {
         mClient = NULL;
     }
 
-    if (mSurfaceControl != NULL) {
-        mSurfaceControl->release();
-        mSurfaceControl = NULL;
-    }
     mInitialized = false;
 }
 
@@ -167,11 +165,6 @@ void RTSubteSink::destoryEGLSurface() {
     if (mSurface != NULL) {
         mSurface.clear();
         mSurface = NULL;
-    }
-
-    if (mSurfaceControl != NULL) {
-        mSurfaceControl->release();
-        mSurfaceControl = NULL;
     }
 
     if (mDisplay != EGL_NO_DISPLAY) {
@@ -502,24 +495,25 @@ void RTSubteSink::createSubitleSurface() {
     if(mClient == NULL) {
         mClient = new SurfaceComposerClient();
         if (mClient != NULL) {
-            DisplayInfo info;
-            getSurfaceMaxWidthAndHeight(info, 0);
+            DisplayConfig config;
+            ui::DisplayState state;
+            getSurfaceMaxWidthAndHeight(config,state, 0);
             // create the native surface
-            mSurfaceControl = mClient->createSurface(String8("SubtitleSurface"),info.w,info.h,PIXEL_FORMAT_RGBA_8888);
+            mSurfaceControl = mClient->createSurface(String8("SubtitleSurface"),config.resolution.getWidth(),config.resolution.getHeight(),PIXEL_FORMAT_RGBA_8888);
             if (mSurfaceControl != NULL) {
                 GraphicWindowApi::OpenSurfaceTransaction();
                 Transaction t;
                 GraphicWindowApi::SetSurfaceLayer(mSurfaceControl, &t, mSubtitleZOrder);
                 GraphicWindowApi::SetSurfacePosition(mSurfaceControl, &t, 0, 0);
-                GraphicWindowApi::SetSurfaceSize(mSurfaceControl, &t, info.w, info.h);
+                GraphicWindowApi::SetSurfaceSize(mSurfaceControl, &t,config.resolution.getWidth(),config.resolution.getHeight());
                 GraphicWindowApi::CloseSurfaceTransaction(&t);
                 mSurface = mSurfaceControl->getSurface();
 
                 mRect.x = 0;
                 mRect.y = 0;
-                mRect.width = info.w;
-                mRect.height = info.h;
-                mRect.rotation = info.orientation;
+                mRect.width = config.resolution.getWidth();
+                mRect.height = config.resolution.getHeight();
+                mRect.rotation = (int)state.orientation;
             } else {
                 ALOGE("createSubitleSurface:mSurfaceControl == NULL");
             }
@@ -562,11 +556,12 @@ int RTSubteSink::setSubtitleSurfaceZOrder(int order) {
 int RTSubteSink::setSubtitleSurfacePosition(int x,int y,int width,int height) {
     Mutex::Autolock autoLock(mRenderLock);
     if (mClient != NULL && mSurfaceControl != NULL) {
-        DisplayInfo info;
-        getSurfaceMaxWidthAndHeight(info, 0);
+        DisplayConfig config;
+        ui::DisplayState state;
+        getSurfaceMaxWidthAndHeight(config,state,0);
 
-        int maxWidth = info.w;
-        int maxHeight = info.h;
+        int maxWidth = config.resolution.getWidth();
+        int maxHeight = config.resolution.getHeight();
         maxWidth = (maxWidth>=width)?width:maxWidth;
         maxHeight = (maxHeight>=height)?height:maxHeight;
 
@@ -619,12 +614,13 @@ void RTSubteSink::setHdmiMode(int mode) {
 
 bool RTSubteSink::checkRotation() {
     Mutex::Autolock autoLock(mRenderLock);
-    DisplayInfo info;
-    getSurfaceMaxWidthAndHeight(info, mDisplayDev);
-    if((info.w != mRect.width) || (info.h != mRect.height) || (info.orientation != mRect.rotation)){
-        mRect.width = info.w;
-        mRect.height = info.h;
-        mRect.rotation = info.orientation;
+    DisplayConfig config;
+    ui::DisplayState state;
+    getSurfaceMaxWidthAndHeight(config, state, mDisplayDev);
+    if((config.resolution.getWidth() != mRect.width) || (config.resolution.getHeight() != mRect.height) || ((int)state.orientation != mRect.rotation)){
+        mRect.width = config.resolution.getWidth();
+        mRect.height = config.resolution.getHeight();
+        mRect.rotation = (int)state.orientation;
 
         // if rotation is happend, must set new position and size
         GraphicWindowApi::OpenSurfaceTransaction();
@@ -639,47 +635,61 @@ bool RTSubteSink::checkRotation() {
     return false;
 }
 
-void RTSubteSink::getSurfaceMaxWidthAndHeight(DisplayInfo& info,int displayId)
+void RTSubteSink::getSurfaceMaxWidthAndHeight(DisplayConfig& config, ui::DisplayState& state, int displayId)
 {
     int width = 1920;
     int height = 1080;
     int orientation = DISPLAY_ORIENTATION_0;
+    status_t err;
 
     // set default value
-    info.w = width;
-    info.h = height;
-    info.orientation = orientation;
+    config.resolution.set(width,height);
+    state.orientation = (android::ui::Rotation)orientation;
 
     if(0 /*ISurfaceComposer::eDisplayIdMain*/ != displayId && 1 /*ISurfaceComposer::eDisplayIdHdmi*/ != displayId){
         ALOGE("getSurfaceMaxWidthAndHeight: displayId = %d in not suppport, set default widht = 1920,height  = 1080", displayId);
         return ;
     }
     //  sp<IBinder> display(SurfaceComposerClient::getBuiltInDisplay(displayId));
+
     const auto display = SurfaceComposerClient::getInternalDisplayToken();
-    status_t status = SurfaceComposerClient::getDisplayInfo(display, &info);
+    if(display == nullptr){
+        ALOGE("error: no display");
+        return;
+    }
+
+    err = SurfaceComposerClient::getDisplayState(display, &state);
+    if(err != NO_ERROR){
+        ALOGE("error: unable to get display state");
+        return;
+    }
+
+    err = SurfaceComposerClient::getActiveDisplayConfig(display, &config);
+    if(err != NO_ERROR){
+        ALOGE("error: unable to get display config");
+        return;
+    }
 
     char value[PROPERTY_VALUE_MAX];
-    if((info.orientation == DISPLAY_ORIENTATION_90) || (info.orientation == DISPLAY_ORIENTATION_270)){
-        width = info.h;
-        height = info.w;
-        orientation = info.orientation;
+    if((state.orientation == (android::ui::Rotation)DISPLAY_ORIENTATION_90) || (state.orientation == (android::ui::Rotation)DISPLAY_ORIENTATION_270)){
+        width = config.resolution.getWidth();
+        height = config.resolution.getHeight();
+        orientation = (int)state.orientation;
     }else{
-        if (status == 0) {
-            property_get("ro.sf.fakerotation", value, "false");
-            if (strcmp(value,"true") == 0) {
-                property_get("ro.sf.hwrotation", value, "0");
-                if ((strcmp(value,"90") == 0) || (strcmp(value,"270") == 0)) {
-                    width = info.h;
-                    height = info.w;
-                    orientation = (strcmp(value,"90") == 0)?DISPLAY_ORIENTATION_90:DISPLAY_ORIENTATION_270;
-                } else {
-                    width = info.w;
-                    height = info.h;
-                }
+        property_get("ro.sf.fakerotation", value, "false");
+        if (strcmp(value,"true") == 0) {
+            property_get("ro.sf.hwrotation", value, "0");
+            if ((strcmp(value,"90") == 0) || (strcmp(value,"270") == 0)) {
+                width = config.resolution.getWidth();
+                height = config.resolution.getHeight();
+                orientation = (strcmp(value,"90") == 0)?DISPLAY_ORIENTATION_90:DISPLAY_ORIENTATION_270;
             } else {
-                width = info.w;
-                height = info.h;
+                width = config.resolution.getWidth();
+                height = config.resolution.getHeight();
             }
+        } else {
+            width = config.resolution.getWidth();
+            height = config.resolution.getHeight();
         }
     }
 
@@ -691,8 +701,7 @@ void RTSubteSink::getSurfaceMaxWidthAndHeight(DisplayInfo& info,int displayId)
         }
     }
 
-    info.w = width;
-    info.h = height;
-    info.orientation = orientation;
+    config.resolution.set(width,height);
+    state.orientation = (android::ui::Rotation)orientation;
 }
 
