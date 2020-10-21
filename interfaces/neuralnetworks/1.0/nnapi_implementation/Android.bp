@@ -1,0 +1,12 @@
+cc_library_static {
+    name: "nnapi_implementation",
+    compile_multilib: "both",
+    srcs: [
+        "nnapi_implementation.cpp",
+    ],
+    host_ldlibs: [
+        "-llog",
+        "-ldl",
+        "-lrt",
+    ],
+}

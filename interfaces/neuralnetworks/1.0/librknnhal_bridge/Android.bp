@@ -1,0 +1,23 @@
+cc_library_shared {
+    name: "librknnhal_bridge",
+    srcs: ["**/*.cpp"],
+//    vendor: true,
+    shared_libs: [
+        "rockchip.hardware.neuralnetworks@1.0",
+        "android.hidl.allocator@1.0",
+        "android.hidl.memory@1.0",
+        "libutils",
+        "libhidlbase",
+        "libhidlmemory",
+        "liblog",
+    ],
+    cppflags: [
+        "-Wno-error",
+    ],
+}
+
+ndk_library {
+    name: "librknnhal_bridge",
+    symbol_file: "librknnhal_bridge.map.txt",
+    first_version: "27",
+}
