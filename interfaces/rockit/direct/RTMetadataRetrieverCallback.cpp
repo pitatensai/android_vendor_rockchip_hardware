@@ -245,8 +245,8 @@ int RTMetadataRetrieverCallback::fillVideoFrame(RtMetaData* meta) {
     uint8_t *dstYuvAddr = NULL;
     uint8_t *convertAddr = NULL;
 
-    int32_t width = ctx->mWidth;
-    int32_t height = ctx->mHeight;
+    int32_t width = ctx->mWStride;
+    int32_t height = ctx->mHStride;
     int32_t stride = ctx->mWStride;
 
     // find src yuv adress
@@ -292,7 +292,7 @@ int RTMetadataRetrieverCallback::fillVideoFrame(RtMetaData* meta) {
                 crop_left, crop_top, crop_right, crop_bottom,
                 frame->getFlattenedData(),
                 frame->mWidth, frame->mHeight, frame->mRowBytes,
-                crop_left, crop_top, crop_right, crop_bottom);
+                0, 0, frame->mWidth - 1, frame->mHeight - 1);
 
         if (dstYuvAddr) {
             free(dstYuvAddr);
@@ -317,8 +317,8 @@ sp<IMemory> RTMetadataRetrieverCallback::allocVideoFrame(RtMetaData* meta) {
 
     int displayWidth = ctx->mWidth;
     int displayHeight = ctx->mHeight;
-    int width = displayWidth;//ctx->mWStride;
-    int height = displayHeight;//ctx->mHStride;
+    int width = ctx->mWStride;
+    int height = ctx->mHStride;
     int bpp = ctx->mBpp;
     int rotation = ctx->mRotation;
 
