@@ -165,17 +165,21 @@ int RockchipNeuralnetworksBuilder::rknn_inputs_set(rknn_context context, uint32_
             vector<RKNNInput> input_array;
             sp<IMemory> memory = mapMemory(mem);
             memory->update();
-            for (int i = 0; i < n_inputs; i++) {
-                // TODO
+            for (uint32_t i = 0; i < n_inputs; i++) {
                 // map memory
+                uint32_t cur_offset = 0;
+                for (uint32_t j = 0; j < i; j++) {
+                    cur_offset += inputs[j].size;
+                }
+
                 memcpy(memory->getPointer(), inputs[i].buf, inputs[i].size);
                 const struct DataLocation buf = {
                     .poolIndex = static_cast<uint32_t>(i),
-                    .offset = 0,
+                    .offset = cur_offset,
                     .length = static_cast<uint32_t>(inputs[i].size),
                 };
                 const struct RKNNInput input0 = {
-                    .index = 0,
+                    .index = i,
                     .buf = buf,
                     .pass_through = false,
                     .type = RKNNTensorType::RKNN_TENSOR_UINT8,
@@ -208,23 +212,26 @@ int RockchipNeuralnetworksBuilder::rknn_outputs_get(rknn_context context, uint32
     CHECK();
     // TODO
     // Calculate result size
-    int poolSize = 4004;
+    int poolSize = 0;
     for (int i = 0; i < n_outputs; i++) {
         poolSize += outputs[i].is_prealloc?outputs[i].size:0;
     }
-    ALOGE("XXXXXXXXXX %d", poolSize);
+
     _kAllocInterface->allocate(poolSize, [&](bool success, const hidl_memory& mem) {
         if (!success) {
         } else {
             sp<IMemory> memory = mapMemory(mem);
             vector<RKNNOutput> output_array;
-            // TODO
             // map memory
-            for (int i = 0; i < n_outputs; i++) {
+            for (uint32_t i = 0; i < n_outputs; i++) {
+                uint32_t cur_offset = 0;
+                for (uint32_t j = 0; j < i; j++) {
+                    cur_offset += outputs[j].size;
+                }
                 const struct DataLocation result = {
-                    .poolIndex = 0,
-                    .offset = 0,
-                    .length = 4004,
+                    .poolIndex = i,
+                    .offset = cur_offset,
+                    .length = outputs[i].size,
                 };
                 const struct RKNNOutput output0 = {
                     .want_float = true,
@@ -243,13 +250,15 @@ int RockchipNeuralnetworksBuilder::rknn_outputs_get(rknn_context context, uint32
             };
             _kRKNNInterface->rknnOutputsGet(context, response, gExt);
             void *resultPool = memory->getPointer();
-            outputs[0].buf = malloc(4004);
-            for (int i = 0; i < n_outputs; i++) {
-                memcpy(outputs[i].buf, resultPool, 4004);
+            for (uint32_t i = 0; i < n_outputs; i++) {
+                uint32_t cur_offset = 0;
+                for (uint32_t j = 0; j < i; j++) {
+                    cur_offset += outputs[j].size;
+                }
+                memcpy(outputs[i].buf, (char *)resultPool + cur_offset, outputs[i].size);
             }
         }
     });
-
     return 0;
 }
 

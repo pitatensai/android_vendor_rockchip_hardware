@@ -162,7 +162,6 @@ Return<::rockchip::hardware::neuralnetworks::V1_0::ErrorStatus> RKNeuralnetworks
     sp<IMemory> pMem = mapMemory(request.pool);
     pMem->update();
     void *pData = pMem->getPointer();
-    ALOGI("pData: %s", (char *)pData);
 
     rknn_input temp_inputs[request.n_inputs];
     for (int i = 0; i < request.n_inputs; i++) {
@@ -204,6 +203,7 @@ Return<::rockchip::hardware::neuralnetworks::V1_0::ErrorStatus> RKNeuralnetworks
         pOutputs[i].is_prealloc = response.outputs[i].is_prealloc;
         pOutputs[i].buf = response.outputs[i].buf.offset + (char *)pData;
         pOutputs[i].size = response.outputs[i].buf.length;
+        pOutputs[i].index = i;
     }
     rknn_output_extend temp_extend = {
         .frame_id = extend.frame_id,
