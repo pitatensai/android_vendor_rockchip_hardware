@@ -1,0 +1,53 @@
+diff --git a/app/CMakeLists.txt b/app/CMakeLists.txt
+index f28cd26..9480b30 100644
+--- a/app/CMakeLists.txt
++++ b/app/CMakeLists.txt
+@@ -26,7 +26,11 @@ find_library( # Sets the name of the path variable.
+               # you want CMake to locate.
+               log )
+ 
+-set(link_libs ${CMAKE_SOURCE_DIR}/src/main/jniLibs/${ANDROID_ABI}/librknn_api.so
++include_directories(
++        ${CMAKE_SOURCE_DIR}/src/main/cpp/3rdparty/nnapi_implementation/include
++)
++
++set(link_libs ${CMAKE_SOURCE_DIR}/src/main/cpp/3rdparty/nnapi_implementation/${ANDROID_ABI}/nnapi_implementation.a
+               EGL
+               GLESv2
+               android
+diff --git a/app/src/main/jni/ssd_image.cc b/app/src/main/jni/ssd_image.cc
+index d896ef3..271e24c 100755
+--- a/app/src/main/jni/ssd_image.cc
++++ b/app/src/main/jni/ssd_image.cc
+@@ -16,13 +16,15 @@
+ #include <sys/uio.h>    // NOLINT(build/include_order)
+ #include <unistd.h>     // NOLINT(build/include_order)
+ #include <string.h>
+-#include "rknn_api.h"
++#include "nnapi_implementation.h"
+ 
+ #include "ssd_image.h"
+ #include "direct_texture.h"
+ 
+ namespace ssd_image {
+ 
++const NnApi* nnapi;
++ARKNNHAL *hal;
+ rknn_context ctx = 0;
+ bool created = false;
+ 
+@@ -53,6 +55,14 @@ void create(int inputSize, int channel, int numResult, int numClasses, char *mPa
+     output_size1 = output_elems1 * sizeof(float);
+ 
+     LOGI("try rknn_init!");
++    nnapi = NnApiImplementation();
++    if (nnapi && nnapi->nnapi_exists) {
++        nnapi->ARKNN_client_create(&hal);
++        if (!hal) {
++            LOGE("Failed to create RKNN HAL Client!");
++            return;
++        }
++    }
+ 
+     // Load model
+     FILE *fp = fopen(mParamPath, "rb");

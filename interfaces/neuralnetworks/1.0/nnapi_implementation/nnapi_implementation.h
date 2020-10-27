@@ -21,6 +21,33 @@ limitations under the License.
 
 #include "NeuralNetworksTypes.h"
 
+#define rknn_find_devices(...) \
+nnapi->ARKNN_find_devices(hal, __VA_ARGS__)
+
+#define rknn_init(...) \
+nnapi->ARKNN_init(hal, __VA_ARGS__)
+
+#define rknn_init2(...) \
+nnapi->ARKNN_init2(hal, __VA_ARGS__)
+
+#define rknn_query(...) \
+nnapi->ARKNN_query(hal, __VA_ARGS__)
+
+#define rknn_destroy(...) \
+nnapi->ARKNN_destroy(hal, __VA_ARGS__)
+
+#define rknn_inputs_set(...) \
+nnapi->ARKNN_inputs_set(hal, __VA_ARGS__)
+
+#define rknn_run(...) \
+nnapi->ARKNN_run(hal, __VA_ARGS__)
+
+#define rknn_outputs_get(...) \
+nnapi->ARKNN_outputs_get(hal, __VA_ARGS__)
+
+#define rknn_outputs_release(...) \
+nnapi->ARKNN_outputs_release(hal, __VA_ARGS__)
+
 struct NnApi {
   bool nnapi_exists;
   int32_t android_sdk_version;
