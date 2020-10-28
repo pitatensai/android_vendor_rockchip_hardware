@@ -1,3 +1,4 @@
+#include <cutils/properties.h>
 #include "RockchipNeuralnetworksBuilder.h"
 
 using ::android::hidl::allocator::V1_0::IAllocator;
@@ -10,9 +11,10 @@ using namespace android;
 
 using ::android::hardware::Return;
 using ::android::hardware::Void;
+static bool g_debug_pro = 0;
 
 #define CHECK() \
-    ALOGE("%s", __func__)
+    if (g_debug_pro) ALOGE("%s", __func__)
 
 static RKNNQueryCmd to_rknn_hal(rknn_query_cmd cmd) {
     switch (cmd) {
@@ -63,6 +65,7 @@ int RockchipNeuralnetworksBuilder::rknn_find_devices(rknn_devices_id* pdevs) {
 
 int RockchipNeuralnetworksBuilder::rknn_init(rknn_context* context, void *pData, uint32_t size, uint32_t flag) {
     CHECK();
+    g_debug_pro = property_get_bool("persist.vendor.rknndebug", false);
     _kAllocInterface->allocate(size, [&](bool success, const hidl_memory& mem) {
         if (!success) {
             ALOGE("Allocate memory failed!");

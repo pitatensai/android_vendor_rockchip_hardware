@@ -7,6 +7,7 @@ cc_library_shared {
         "android.hidl.allocator@1.0",
         "android.hidl.memory@1.0",
         "libutils",
+        "libcutils",
         "libhidlbase",
         "libhidlmemory",
         "liblog",

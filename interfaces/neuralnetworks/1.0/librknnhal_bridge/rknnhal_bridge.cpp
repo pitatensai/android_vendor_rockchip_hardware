@@ -19,6 +19,7 @@
 #include "RockchipNeuralnetworksBuilder.h"
 #include "HalInterfaces.h"
 #include "rknnhal_bridge.h"
+#include <cutils/properties.h>
 
 using ::android::hidl::allocator::V1_0::IAllocator;
 using ::android::hidl::memory::V1_0::IMemory;
@@ -32,9 +33,10 @@ using namespace rockchip::nn;
 
 using ::android::hardware::Return;
 using ::android::hardware::Void;
+static bool g_debug_pro = 0;
 
 #define CHECK_AND_GET_CLIENT() \
-    ALOGE("%s", __func__); \
+    if (g_debug_pro) ALOGE("%s", __func__); \
     if (!hal) { \
         ALOGE("Hal obj is nullptr!"); \
         return -1; \
@@ -43,7 +45,9 @@ using ::android::hardware::Void;
 
 // From rknn api
 int ARKNN_client_create(ARKNNHAL **hal) {
-    ALOGE("%s", __func__);
+    g_debug_pro = property_get_bool("persist.vendor.rknndebug", false);
+    ALOGE("%s %d", __func__, g_debug_pro);
+
     auto nnb = std::make_unique<RockchipNeuralnetworksBuilder>();
     *hal = reinterpret_cast<ARKNNHAL*>(nnb.release());
     return 0;

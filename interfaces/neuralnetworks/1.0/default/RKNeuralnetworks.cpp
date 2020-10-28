@@ -76,6 +76,7 @@ static rknn_tensor_format to_rknnapi(V1_0::RKNNTensorFormat format) {
 // Methods from ::rockchip::hardware::neuralnetworks::V1_0::IRKNeuralnetworks follow.
 Return<void> RKNeuralnetworks::rknnInit(const ::rockchip::hardware::neuralnetworks::V1_0::RKNNModel& model, uint32_t size, uint32_t flag, rknnInit_cb _hidl_cb) {
     RECORD_TAG();
+    g_debug_pro = property_get_bool("persist.vendor.rknndebug", false);
     sp<IMemory> pMem = mapMemory(model.modelData);
     void *pData = pMem->getPointer();
     ALOGI("%s: %s", __func__, (char *)pData);
@@ -246,7 +247,6 @@ Return<void> RKNeuralnetworks::registerCallback(const sp<::rockchip::hardware::n
 #endif
     return Void();
 }
-
 
 // Methods from ::android::hidl::base::V1_0::IBase follow.
 

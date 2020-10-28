@@ -21,6 +21,7 @@ cc_library_shared {
     shared_libs: [
         "libhidlbase",
         "libhidlmemory",
+        "libcutils",
         "libutils",
         "liblog",
         "rockchip.hardware.neuralnetworks@1.0",
