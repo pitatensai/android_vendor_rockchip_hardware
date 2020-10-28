@@ -16,6 +16,12 @@ static bool g_debug_pro = 0;
 #define CHECK() \
     if (g_debug_pro) ALOGE("%s", __func__)
 
+#define allocateAsh(size, ...) \
+    if (!size) { ALOGE("%s: size can't be 0!!!", __func__); \
+        return -1; \
+    } \
+    _kAllocInterface->allocate(size, __VA_ARGS__)
+
 static RKNNQueryCmd to_rknn_hal(rknn_query_cmd cmd) {
     switch (cmd) {
         case RKNN_QUERY_IN_OUT_NUM:
@@ -70,13 +76,13 @@ int RockchipNeuralnetworksBuilder::rknn_find_devices(rknn_devices_id* pdevs) {
 int RockchipNeuralnetworksBuilder::rknn_init(rknn_context* context, void *pData, uint32_t size, uint32_t flag) {
     CHECK();
     g_debug_pro = property_get_bool("persist.vendor.rknndebug", false);
-    _kAllocInterface->allocate(size, [&](bool success, const hidl_memory& mem) {
+    allocateAsh(size, [&](bool success, const hidl_memory& mem) {
         if (!success) {
             ALOGE("Allocate memory failed!");
         } else {
             const struct RKNNModel model = {
-                .name = "mobilenet_v1",
-                .path = "/data/mobilenet_v1-tf.rknn",
+                //.name = "mobilenet_v1",
+                //.path = "/data/mobilenet_v1-tf.rknn",
                 .modelData = mem,
             };
             sp<IMemory> memory = mapMemory(mem);
@@ -104,13 +110,13 @@ int RockchipNeuralnetworksBuilder::rknn_init(rknn_context* context, void *pData,
 
 int RockchipNeuralnetworksBuilder::rknn_init2(rknn_context* context, void *pData, uint32_t size, uint32_t flag, rknn_init_extend* extend) {
     CHECK();
-    _kAllocInterface->allocate(size, [&](bool success, const hidl_memory& mem) {
+    allocateAsh(size, [&](bool success, const hidl_memory& mem) {
         if (!success) {
             ALOGE("Allocate memory failed!");
         } else {
             const struct RKNNModel model = {
-                .name = "mobilenet_v1",
-                .path = "/data/mobilenet_v1-tf.rknn",
+                //.name = "mobilenet_v1",
+                //.path = "/data/mobilenet_v1-tf.rknn",
                 .modelData = mem,
             };
             sp<IMemory> memory = mapMemory(mem);
@@ -147,7 +153,7 @@ int RockchipNeuralnetworksBuilder::rknn_destroy(rknn_context context) {
 
 int RockchipNeuralnetworksBuilder::rknn_query(rknn_context context, rknn_query_cmd cmd, void* info, uint32_t size) {
     CHECK();
-    _kAllocInterface->allocate(size, [&](bool success, const hidl_memory& mem) {
+    allocateAsh(size, [&](bool success, const hidl_memory& mem) {
         if (!success) {
             ALOGE("Allocate memory failed!");
         } else {
@@ -165,7 +171,7 @@ int RockchipNeuralnetworksBuilder::rknn_inputs_set(rknn_context context, uint32_
     for (int i = 0; i < n_inputs; i++) {
         poolSize += inputs[i].size;
     }
-    _kAllocInterface->allocate(poolSize, [&](bool success, const hidl_memory& mem) {
+    allocateAsh(poolSize, [&](bool success, const hidl_memory& mem) {
         if (!success) {
 
         } else {
@@ -217,14 +223,16 @@ int RockchipNeuralnetworksBuilder::rknn_run(rknn_context context, rknn_run_exten
 
 int RockchipNeuralnetworksBuilder::rknn_outputs_get(rknn_context context, uint32_t n_outputs, rknn_output outputs[], rknn_output_extend* extend) {
     CHECK();
-    // TODO
-    // Calculate result size
     int poolSize = 0;
     for (int i = 0; i < n_outputs; i++) {
+        if (!outputs[i].is_prealloc) {
+            ALOGE("error: %s: outputs[].is_prealloc must be true!!!", __func__);
+            return 0;
+        }
         poolSize += outputs[i].is_prealloc?outputs[i].size:0;
     }
 
-    _kAllocInterface->allocate(poolSize, [&](bool success, const hidl_memory& mem) {
+    allocateAsh(poolSize, [&](bool success, const hidl_memory& mem) {
         if (!success) {
         } else {
             sp<IMemory> memory = mapMemory(mem);
@@ -271,7 +279,47 @@ int RockchipNeuralnetworksBuilder::rknn_outputs_get(rknn_context context, uint32
 
 int RockchipNeuralnetworksBuilder::rknn_outputs_release(rknn_context context, uint32_t n_outputs, rknn_output outputs[]) {
     CHECK();
-    //_kRKNNInterface->rknnOutputsRelease(context, );
+    int poolSize = 0;
+    for (int i = 0; i < n_outputs; i++) {
+        if (!outputs[i].is_prealloc) {
+            ALOGE("error: %s outputs[].is_prealloc must be true!!!", __func__);
+            return 0;
+        }
+        poolSize += outputs[i].is_prealloc?outputs[i].size:0;
+    }
+
+    allocateAsh(poolSize, [&](bool success, const hidl_memory& mem) {
+        if (!success) {
+        } else {
+            sp<IMemory> memory = mapMemory(mem);
+            vector<RKNNOutput> output_array;
+            // map memory
+            for (uint32_t i = 0; i < n_outputs; i++) {
+                uint32_t cur_offset = 0;
+                for (uint32_t j = 0; j < i; j++) {
+                    cur_offset += outputs[j].size;
+                }
+                const struct DataLocation result = {
+                    .poolIndex = i,
+                    .offset = cur_offset,
+                    .length = outputs[i].size,
+                };
+                const struct RKNNOutput output0 = {
+                    .want_float = true,
+                    .is_prealloc = true,
+                    .buf = result,
+                };
+                output_array.push_back(output0);
+            }
+            const struct Response response = {
+                .n_outputs = static_cast<uint32_t>(output_array.size()),
+                .outputs = output_array,
+                .pool = mem,
+            };
+
+            _kRKNNInterface->rknnOutputsRelease(context, response);
+        }
+    });
     return 0;
 }
 

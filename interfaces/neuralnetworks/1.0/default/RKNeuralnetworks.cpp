@@ -223,9 +223,20 @@ Return<::rockchip::hardware::neuralnetworks::V1_0::ErrorStatus> RKNeuralnetworks
     RECORD_TAG();
 #if IMPL_RKNN
     //CheckContext();
-    // TODO release buf pointer.
-    //sp<IMemory> pMem = mapMemory(outputs[0].buf);
-    //ret = rknn_outputs_release(context, n_outputs, pMem->getPointer());
+    sp<IMemory> pMem = mapMemory(response.pool);
+    pMem->update();
+    void *pData = pMem->getPointer();
+
+    rknn_output pOutputs[response.n_outputs];
+    for (int i = 0; i < response.n_outputs; i++) {
+        pOutputs[i].want_float = response.outputs[i].want_float;
+        pOutputs[i].is_prealloc = response.outputs[i].is_prealloc;
+        pOutputs[i].buf = response.outputs[i].buf.offset + (char *)pData;
+        pOutputs[i].size = response.outputs[i].buf.length;
+        pOutputs[i].index = i;
+    }
+    ret = rknn_outputs_release(context, response.n_outputs, pOutputs);
+    pMem->commit();
 #endif
     return ::rockchip::hardware::neuralnetworks::V1_0::ErrorStatus {toErrorStatus(ret)};
 }
