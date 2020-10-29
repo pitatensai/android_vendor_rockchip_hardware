@@ -114,20 +114,23 @@ Return<void> RKNeuralnetworks::rknnFindDevices(rknnFindDevices_cb _hidl_cb) {
         //_hidl_cb(toErrorStatus(ret), nullptr);
         return Void();
     }
-    int device_counts = (int)all_npu_devices->n_devices;
-    string got_types[device_counts];
-    string got_ids[device_counts];
-    for (int i = device_counts; i >= 0; i--) {
-        got_types[i] = all_npu_devices->types[i];
-        got_ids[i] = all_npu_devices->ids[i];
+    uint32_t device_counts = all_npu_devices->n_devices;
+    hidl_array<hidl_string, 256> got_types;
+    hidl_array<hidl_string, 256> got_ids;
+    for (uint32_t i = 0; i < device_counts; i++) {
+        string type(all_npu_devices->types[i]);
+        string id(all_npu_devices->ids[i]);
+        got_types[i] = type;
+        got_ids[i] = id;
     }
-    // TODO FIXME
-    /*
-    struct RKNNDeviceID device_id = {
+
+    const ::rockchip::hardware::neuralnetworks::V1_0::RKNNDeviceID device_id = {
+        .n_devices = device_counts,
         .types = got_types,
         .ids = got_ids,
     };
-    _hidl_cb(toErrorStatus(ret), device_id);*/
+
+    _hidl_cb(toErrorStatus(ret), device_id);
     if (all_npu_devices) free(all_npu_devices);
 #else
     //_hidl_cb(toErrorStatus(ret), nullptr);

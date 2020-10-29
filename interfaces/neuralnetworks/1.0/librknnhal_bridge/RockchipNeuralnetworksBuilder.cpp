@@ -55,9 +55,13 @@ int RockchipNeuralnetworksBuilder::rknn_find_devices(rknn_devices_id* pdevs) {
     CHECK();
     Return<void> ret = _kRKNNInterface->rknnFindDevices([&](ErrorStatus status, RKNNDeviceID devices) {
         if ((int)status == RKNN_SUCC) {
-            
+            pdevs->n_devices = devices.n_devices;
+            for(int i=0; i<devices.n_devices; i++) {
+                memcpy(pdevs->types[i], devices.types[i].c_str(), strlen(devices.types[i].c_str()));
+                memcpy(pdevs->ids[i], devices.ids[i].c_str(), strlen(devices.ids[i].c_str()));
+            }
         } else {
-
+            ALOGE("Failed to rknnFindDevices!\n");
         }
     });
     return 0;
