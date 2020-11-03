@@ -73,7 +73,7 @@ class RockitPlayer : public RefBase {
     rt_status fillInvokeReply(INT32 event, RtMetaData* meta, Parcel* reply);
     rt_status fillTrackInfoReply(RtMetaData* meta, Parcel* reply);
     void      fillTrackInfor(Parcel *reply, int type, String16& mime, String16& lang);
-    rt_status translateMediaType(INT32 rtMediaType);
+    INT32     translateMediaType(INT32 sourceType, bool rtType);
     rt_status fillGetSelectedTrackReply(RtMetaData* meta, Parcel* reply);
 
  private:

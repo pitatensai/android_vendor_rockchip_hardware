@@ -227,7 +227,10 @@ INT32 RockitPlayer::fillInvokeRequest(const Parcel &request, RtMetaData* meta, I
         } break;
 
         case INVOKE_ID_GET_SELECTED_TRACK: {
+            INT32 andrType = request.readInt32();
+            INT32 rtType = translateMediaType(andrType, false);
             meta->setInt32(kUserInvokeCmd, RT_INVOKE_ID_GET_SELECTED_TRACK);
+            meta->setInt32(kUserInvokeGetSelectTrack, rtType);
         } break;
 
         default:
@@ -239,24 +242,36 @@ INT32 RockitPlayer::fillInvokeRequest(const Parcel &request, RtMetaData* meta, I
     return ret;
 }
 
-rt_status RockitPlayer::translateMediaType(INT32 rtMediaType) {
-    INT32 mediaType = MEDIA_TRACK_TYPE_UNKNOWN;
-    switch(rtMediaType) {
-        case RTTRACK_TYPE_VIDEO:
-            mediaType = MEDIA_TRACK_TYPE_VIDEO;
-            break;
-        case RTTRACK_TYPE_AUDIO:
-            mediaType = MEDIA_TRACK_TYPE_AUDIO;
-            break;
-        case RTTRACK_TYPE_SUBTITLE:
-            mediaType = MEDIA_TRACK_TYPE_TIMEDTEXT;
-            break;
-        default:
-            ALOGD("translateMediaType type = %d not support", rtMediaType);
+INT32 RockitPlayer::translateMediaType(INT32 sourceType, bool rtType) {
+    struct TrackTypeMap {
+        INT32 AndrType;
+        INT32 RTType;
+    };
+
+    static const TrackTypeMap kTrackTypeMap[] = {
+        { MEDIA_TRACK_TYPE_UNKNOWN,      RTTRACK_TYPE_UNKNOWN  },
+        { MEDIA_TRACK_TYPE_VIDEO,        RTTRACK_TYPE_VIDEO  },
+        { MEDIA_TRACK_TYPE_AUDIO,        RTTRACK_TYPE_AUDIO  },
+        { MEDIA_TRACK_TYPE_TIMEDTEXT,    RTTRACK_TYPE_SUBTITLE  },
+        { MEDIA_TRACK_TYPE_SUBTITLE,     RTTRACK_TYPE_SUBTITLE  },
+        { MEDIA_TRACK_TYPE_METADATA,     RTTRACK_TYPE_ATTACHMENT  },
+    };
+
+    static const size_t kNumTrackTypeMap =
+        sizeof(kTrackTypeMap) / sizeof(kTrackTypeMap[0]);
+
+    INT32 i;
+    for (i = 0; i < kNumTrackTypeMap; ++i) {
+        INT32 trackType =
+            rtType ? kTrackTypeMap[i].RTType : kTrackTypeMap[i].AndrType;
+        if (sourceType == trackType)
             break;
     }
 
-    return mediaType;
+    if (i == kNumTrackTypeMap)
+        return rtType ? MEDIA_TRACK_TYPE_UNKNOWN : RTTRACK_TYPE_UNKNOWN;
+
+    return rtType ? kTrackTypeMap[i].AndrType : kTrackTypeMap[i].RTType;
 }
 
 void RockitPlayer::fillTrackInfor(Parcel *reply, int type,String16& mime, String16& lang) {
@@ -300,7 +315,7 @@ rt_status RockitPlayer::fillTrackInfoReply(RtMetaData* meta, Parcel* reply) {
     String16 mine, lang;
     RockitTrackInfor* trackInfor = (RockitTrackInfor*)tracks;
     for (INT32 i = 0; i < counter; ++i) {
-        int codecType = translateMediaType(trackInfor[i].mCodecType);
+        int codecType = translateMediaType(trackInfor[i].mCodecType, true);
         switch (codecType) {
             case MEDIA_TRACK_TYPE_VIDEO: {
                     snprintf(desc, 100, ",%dx%d,%f", trackInfor[i].mWidth,
@@ -337,7 +352,7 @@ rt_status RockitPlayer::fillTrackInfoReply(RtMetaData* meta, Parcel* reply) {
 
 rt_status RockitPlayer::fillGetSelectedTrackReply(RtMetaData* meta, Parcel* reply) {
     int idx = 0;
-    RT_BOOL status = meta->findInt32(kUserInvokeGetSelectTrack, &idx);
+    RT_BOOL status = meta->findInt32(kUserInvokeTracksIdx, &idx);
     if(status == RT_FALSE) {
         ALOGE("fillTrackInfoReply : not find track in meta,counter = %d", idx);
         idx = -1;
