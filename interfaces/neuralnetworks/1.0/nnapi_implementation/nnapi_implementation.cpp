@@ -12,7 +12,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#include "nnapi_implementation.h"
 
 #include <dlfcn.h>
 #include <fcntl.h>
@@ -21,17 +20,36 @@ limitations under the License.
 #include <unistd.h>
 
 #include <cstdlib>
-#include <errno.h>
 #include <android/log.h>
 
 #include <sys/system_properties.h>
 
-#define TAG "nnapi_implementation.a"
-#define NNAPI_LOG(...) __android_log_print(ANDROID_LOG_ERROR,TAG ,__VA_ARGS__)
+#include "NeuralNetworksTypes.h"
+#include "rknn_api.h"
 
-namespace {
+#define TAG "RKNN_API"
+// #define NNAPI_LOG(...) __android_log_print(ANDROID_LOG_ERROR,TAG ,__VA_ARGS__)
+#define NNAPI_LOG(...)
 
-int32_t GetAndroidSdkVersion() {
+struct NnApi {
+  bool nnapi_exists;
+  int32_t android_sdk_version;
+
+  int (*ARKNN_client_create)(ARKNNHAL **hal);
+  int (*ARKNN_find_devices)(ARKNNHAL *hal, rknn_devices_id* pdevs);
+  int (*ARKNN_init)(ARKNNHAL *hal, rknn_context *context, void *model, uint32_t size, uint32_t flag);
+  int (*ARKNN_init2)(ARKNNHAL *hal, rknn_context* context, void *model, uint32_t size, uint32_t flag, rknn_init_extend* extend);
+  int (*ARKNN_destroy)(ARKNNHAL *hal, rknn_context);
+  int (*ARKNN_query)(ARKNNHAL *hal, rknn_context context, rknn_query_cmd cmd, void* info, uint32_t size);
+  int (*ARKNN_inputs_set)(ARKNNHAL *hal, rknn_context context, uint32_t n_inputs, rknn_input inputs[]);
+  int (*ARKNN_run)(ARKNNHAL *hal, rknn_context context, rknn_run_extend* extend);
+  int (*ARKNN_outputs_get)(ARKNNHAL *hal, rknn_context, uint32_t n_outputs, rknn_output outputs[], rknn_output_extend* extend);
+  int (*ARKNN_outputs_release)(ARKNNHAL *hal, rknn_context context, uint32_t n_ouputs, rknn_output outputs[]);
+
+  int (*ASharedMemory_create)(const char* name, size_t size);
+};
+
+static int32_t GetAndroidSdkVersion() {
   const char* sdkProp = "ro.build.version.sdk";
   char sdkVersion[PROP_VALUE_MAX];
   int length = __system_property_get(sdkProp, sdkVersion);
@@ -63,13 +81,13 @@ int32_t GetAndroidSdkVersion() {
   return 0;
 }
 
-void* LoadFunction(void* handle, const char* name, bool optional) {
+static void* LoadFunction(void* handle, const char* name, bool optional) {
   if (handle == nullptr) {
     return nullptr;
   }
   void* fn = dlsym(handle, name);
   if (fn == nullptr && !optional) {
-    NNAPI_LOG("nnapi error: unable to open function %s, %s", name, dlerror());
+    NNAPI_LOG("nnapi error: unable to open function %s", name);
   }
   return fn;
 }
@@ -86,7 +104,7 @@ void* LoadFunction(void* handle, const char* name, bool optional) {
   nnapi.name = reinterpret_cast<name##_fn>(        \
       LoadFunction(handle, symbol, /*optional*/ false));
 
-const NnApi LoadNnApi() {
+static const NnApi LoadNnApi() {
   NnApi nnapi = {};
   nnapi.android_sdk_version = 0;
 
@@ -103,7 +121,7 @@ const NnApi LoadNnApi() {
   // instances of nn api RT
   librknnhal_bridge = dlopen("librknnhal_bridge.so", RTLD_LAZY | RTLD_LOCAL);
   if (librknnhal_bridge == nullptr) {
-    NNAPI_LOG("nnapi error: unable to open library %s, %s", "librknnhal_bridge.so", strerror(errno));
+    NNAPI_LOG("nnapi error: unable to open library %s", "librknnhal_bridge.so");
   }
 
   nnapi.nnapi_exists = librknnhal_bridge != nullptr;
@@ -146,9 +164,121 @@ const NnApi LoadNnApi() {
   return nnapi;
 }
 
-}  // namespace
-
-const NnApi* NnApiImplementation() {
+static const NnApi* NnApiImplementation() {
   static const NnApi nnapi = LoadNnApi();
   return &nnapi;
+}
+
+typedef struct {
+  ARKNNHAL *hal;
+  rknn_context rknn_ctx;
+} _rknn_context;
+
+int rknn_find_devices(rknn_devices_id* pdevs) {
+  const NnApi *_nnapi = NnApiImplementation();
+  ARKNNHAL *_hal;
+  _nnapi->ARKNN_client_create(&_hal);
+  if (!_hal) {
+      NNAPI_LOG("Failed to create RKNN HAL Client!");
+      return RKNN_ERR_DEVICE_UNAVAILABLE;
+  }
+  return _nnapi->ARKNN_find_devices(_hal, pdevs);
+}
+
+int rknn_init2(rknn_context* context, void* model, uint32_t size, uint32_t flag, rknn_init_extend* extend) {
+  int ret;
+  const NnApi *_nnapi = NnApiImplementation();
+
+  ARKNNHAL *_hal;
+  _nnapi->ARKNN_client_create(&_hal);
+  if (!_hal) {
+      NNAPI_LOG("Failed to create RKNN HAL Client!");
+      return RKNN_ERR_DEVICE_UNAVAILABLE;
+  }
+
+  rknn_context _rknn_ctx;
+  if (extend != NULL) {
+    ret = _nnapi->ARKNN_init2(_hal, &_rknn_ctx, model, size, flag, extend);
+  } else {
+    ret = _nnapi->ARKNN_init(_hal, &_rknn_ctx, model, size, flag);
+  }
+
+  if (ret == RKNN_SUCC) {
+    _rknn_context *_ctx = (_rknn_context *)malloc(sizeof(_rknn_context));
+    _ctx->hal = _hal;
+    _ctx->rknn_ctx = _rknn_ctx;
+    *context = (rknn_context)_ctx;
+  }
+
+  return ret;
+}
+
+int rknn_init(rknn_context* context, void* model, uint32_t size, uint32_t flag) {
+  return rknn_init2(context, model, size, flag, NULL);
+}
+
+int rknn_destroy(rknn_context context) {
+  _rknn_context *_ctx = (_rknn_context *)context;
+  if (_ctx == NULL || _ctx->hal == NULL || _ctx->rknn_ctx == NULL) {
+    return RKNN_ERR_CTX_INVALID;
+  }
+
+  const NnApi *_nnapi = NnApiImplementation();
+
+  return _nnapi->ARKNN_destroy(_ctx->hal, _ctx->rknn_ctx);
+}
+
+int rknn_query(rknn_context context, rknn_query_cmd cmd, void* info, uint32_t size) {
+  _rknn_context *_ctx = (_rknn_context *)context;
+  if (_ctx == NULL || _ctx->hal == NULL || _ctx->rknn_ctx == NULL) {
+    return RKNN_ERR_CTX_INVALID;
+  }
+
+  const NnApi *_nnapi = NnApiImplementation();
+
+  return _nnapi->ARKNN_query(_ctx->hal, _ctx->rknn_ctx, cmd, info, size);
+}
+
+int rknn_inputs_set(rknn_context context, uint32_t n_inputs, rknn_input inputs[]) {
+  _rknn_context *_ctx = (_rknn_context *)context;
+  if (_ctx == NULL || _ctx->hal == NULL || _ctx->rknn_ctx == NULL) {
+    return RKNN_ERR_CTX_INVALID;
+  }
+
+  const NnApi *_nnapi = NnApiImplementation();
+
+  return _nnapi->ARKNN_inputs_set(_ctx->hal, _ctx->rknn_ctx, n_inputs, inputs);
+}
+
+int rknn_run(rknn_context context, rknn_run_extend* extend) {
+  _rknn_context *_ctx = (_rknn_context *)context;
+  if (_ctx == NULL || _ctx->hal == NULL || _ctx->rknn_ctx == NULL) {
+    return RKNN_ERR_CTX_INVALID;
+  }
+
+  const NnApi *_nnapi = NnApiImplementation();
+
+  return _nnapi->ARKNN_run(_ctx->hal, _ctx->rknn_ctx, extend);
+}
+
+int rknn_outputs_get(rknn_context context, uint32_t n_outputs, rknn_output outputs[], rknn_output_extend* extend) {
+  _rknn_context *_ctx = (_rknn_context *)context;
+  if (_ctx == NULL || _ctx->hal == NULL || _ctx->rknn_ctx == NULL) {
+    return RKNN_ERR_CTX_INVALID;
+  }
+
+  const NnApi *_nnapi = NnApiImplementation();
+
+  return _nnapi->ARKNN_outputs_get(_ctx->hal, _ctx->rknn_ctx, n_outputs, outputs, extend);
+}
+
+int rknn_outputs_release(rknn_context context, uint32_t n_ouputs, rknn_output outputs[]) {
+  _rknn_context *_ctx = (_rknn_context *)context;
+  if (_ctx == NULL || _ctx->hal == NULL || _ctx->rknn_ctx == NULL) {
+    return RKNN_ERR_CTX_INVALID;
+  }
+
+  const NnApi *_nnapi = NnApiImplementation();
+
+  return _nnapi->ARKNN_outputs_release(_ctx->hal, _ctx->rknn_ctx, n_ouputs, outputs);
 }

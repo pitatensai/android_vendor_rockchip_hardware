@@ -16,10 +16,8 @@ limitations under the License.
 #define RKNNAPI_NEURALNETWORKSTYPES_H_
 
 #include <stdint.h>
-#include <stdio.h>
-#include <string>
 
-#include "rknn_api_lite.h"
+#include "rknn_api.h"
 
 typedef struct ARKNNHAL ARKNNHAL;
 

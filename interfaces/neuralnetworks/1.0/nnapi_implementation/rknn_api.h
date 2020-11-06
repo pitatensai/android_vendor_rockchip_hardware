@@ -1,6 +1,6 @@
 /****************************************************************************
 *
-*    Copyright (c) 2017 - 2018 by Rockchip Corp.  All rights reserved.
+*    Copyright (c) 2019 - 2020 by Rockchip Corp.  All rights reserved.
 *
 *    The material in this file is confidential and contains trade secrets
 *    of Rockchip Corporation. This is proprietary information owned by
@@ -21,7 +21,7 @@ extern "C" {
 #include <stdint.h>
 
 /* RKNN API Version */
-#define API_VERSION                             "1.3.2"
+#define API_VERSION                             "1.3.3"
 
 /*
     Definition of extended flag for rknn_init.
@@ -253,6 +253,111 @@ typedef struct _rknn_output_extend {
     uint64_t frame_id;                                  /* output parameter, indicate the frame id of outputs, corresponds to
                                                            struct rknn_run_extend.frame_id.*/
 } rknn_output_extend;
+
+
+/*  rknn_init
+
+    initial the context and load the rknn model.
+
+    input:
+        rknn_context* context       the pointer of context handle.
+        void* model                 pointer to the rknn model.
+        uint32_t size               the size of rknn model.
+        uint32_t flag               extend flag, see the define of RKNN_FLAG_XXX_XXX.
+    return:
+        int                         error code.
+*/
+int rknn_init(rknn_context* context, void* model, uint32_t size, uint32_t flag);
+
+
+/*  rknn_destroy
+
+    unload the rknn model and destroy the context.
+
+    input:
+        rknn_context context        the handle of context.
+    return:
+        int                         error code.
+*/
+int rknn_destroy(rknn_context context);
+
+
+/*  rknn_query
+
+    query the information about model or others. see rknn_query_cmd.
+
+    input:
+        rknn_context context        the handle of context.
+        rknn_query_cmd cmd          the command of query.
+        void* info                  the buffer point of information.
+        uint32_t size               the size of information.
+    return:
+        int                         error code.
+*/
+int rknn_query(rknn_context context, rknn_query_cmd cmd, void* info, uint32_t size);
+
+
+/*  rknn_inputs_set
+
+    set inputs information by input index of rknn model.
+    inputs information see rknn_input.
+
+    input:
+        rknn_context context        the handle of context.
+        uint32_t n_inputs           the number of inputs.
+        rknn_input inputs[]         the arrays of inputs information, see rknn_input.
+    return:
+        int                         error code
+*/
+int rknn_inputs_set(rknn_context context, uint32_t n_inputs, rknn_input inputs[]);
+
+
+/*  rknn_run
+
+    run the model to execute inference.
+    this function does not block normally, but it blocks when more than 3 inferences
+    are not obtained by rknn_outputs_get.
+
+    input:
+        rknn_context context        the handle of context.
+        rknn_run_extend* extend     the extend information of run.
+    return:
+        int                         error code.
+*/
+int rknn_run(rknn_context context, rknn_run_extend* extend);
+
+
+/*  rknn_outputs_get
+
+    wait the inference to finish and get the outputs.
+    this function will block until inference finish.
+    the results will set to outputs[].
+
+    input:
+        rknn_context context        the handle of context.
+        uint32_t n_outputs          the number of outputs.
+        rknn_output outputs[]       the arrays of output, see rknn_output.
+        rknn_output_extend*         the extend information of output.
+    return:
+        int                         error code.
+*/
+int rknn_outputs_get(rknn_context context, uint32_t n_outputs, rknn_output outputs[], rknn_output_extend* extend);
+
+
+/*  rknn_outputs_release
+
+    release the outputs that get by rknn_outputs_get.
+    after called, the rknn_output[x].buf get from rknn_outputs_get will
+    also be free when rknn_output[x].is_prealloc = FALSE.
+
+    input:
+        rknn_context context        the handle of context.
+        uint32_t n_ouputs           the number of outputs.
+        rknn_output outputs[]       the arrays of output.
+    return:
+        int                         error code
+*/
+int rknn_outputs_release(rknn_context context, uint32_t n_ouputs, rknn_output outputs[]);
 
 #ifdef __cplusplus
 } //extern "C"

@@ -51,9 +51,8 @@ https://source.android.com/devices/architecture/hidl
 4. 更新nnapi_implementation.a给App去链接使用
 - 通过dlopen librknnhal_bridge.so实现，没有任何依赖。
 - NeuralNetworksTypes.h: 映射函数定义，"函数名_fn"就是dlopen后，获取到的实际函数指针。
-- nnapi_implementation.h: 提供给App的接口，App端直接链接nnapi_implementation.a后，调用该头文件的接口即可使用HAL。
+- rknn_api.h: 提供给App的接口，App端直接链接librknn_api_android.so后，调用该头文件的接口即可使用HAL。
 - nnapi_implementation.cpp: 映射实现，增加接口后，这三个文件都需要修改。
-- mm编译后，位于$OUT/obj/STATIC_LIBRARIES/nnapi_implementation_intermediates/nnapi_implementation.a，拷贝这个.a及nnapi_implementation.h到App链接使用。
 
 
 ### 工作流程

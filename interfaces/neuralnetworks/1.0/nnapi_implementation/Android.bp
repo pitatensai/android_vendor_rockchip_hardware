@@ -1,12 +1,12 @@
-cc_library_static {
-    name: "nnapi_implementation",
+cc_library_shared {
+    name: "librknn_api_android",
     compile_multilib: "both",
     srcs: [
         "nnapi_implementation.cpp",
     ],
-    host_ldlibs: [
-        "-llog",
-        "-ldl",
-        "-lrt",
+    shared_libs: [
+        "liblog",
+        "libdl"
     ],
+    stl: "c++_static",
 }
