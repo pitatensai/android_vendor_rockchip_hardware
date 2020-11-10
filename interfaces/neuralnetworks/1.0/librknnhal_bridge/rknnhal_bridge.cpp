@@ -69,42 +69,41 @@ int ARKNN_init2(ARKNNHAL *hal, rknn_context* context, void *model, uint32_t size
     CHECK_AND_GET_CLIENT();
     int ret = client->rknn_init2(context, model, size, flag, extend);
     // TODO
-    return 0;
+    return ret;
 }
 
 int ARKNN_destroy(ARKNNHAL *hal, rknn_context context) {
     CHECK_AND_GET_CLIENT();
     int ret = client->rknn_destroy(context);
-    return 0;
-
+    return ret;
 }
 
 int ARKNN_query(ARKNNHAL *hal, rknn_context context, rknn_query_cmd cmd, void* info, uint32_t size) {
     CHECK_AND_GET_CLIENT();
     int ret = client->rknn_query(context, cmd, info, size);
-    return 0;
+    return ret;
 }
 
 int ARKNN_inputs_set(ARKNNHAL *hal, rknn_context context, uint32_t n_inputs, rknn_input inputs[]) {
     CHECK_AND_GET_CLIENT();
     int ret = client->rknn_inputs_set(context, n_inputs, inputs);
-    return 0;
+    return ret;
 }
 
 int ARKNN_run(ARKNNHAL *hal, rknn_context context, rknn_run_extend* extend) {
     CHECK_AND_GET_CLIENT();
     int ret = client->rknn_run(context, extend);
-    return 0;
+    return ret;
 }
 
 int ARKNN_outputs_get(ARKNNHAL *hal, rknn_context context, uint32_t n_outputs, rknn_output outputs[], rknn_output_extend* extend) {
     CHECK_AND_GET_CLIENT();
     int ret = client->rknn_outputs_get(context, n_outputs, outputs, extend);
-    return 0;
+    return ret;
 }
 
 int ARKNN_outputs_release(ARKNNHAL *hal, rknn_context context, uint32_t n_outputs, rknn_output outputs[]) {
     CHECK_AND_GET_CLIENT();
     int ret = client->rknn_outputs_release(context, n_outputs, outputs);
-    return 0;
+    return ret;
 }

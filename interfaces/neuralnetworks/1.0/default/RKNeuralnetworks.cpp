@@ -93,7 +93,7 @@ Return<void> RKNeuralnetworks::rknnInit2(const ::rockchip::hardware::neuralnetwo
     RECORD_TAG();
     sp<IMemory> pMem = mapMemory(model.modelData);
     void *pData = pMem->getPointer();
-#if IMPL_RKNN
+#if 0
     rknn_init_extend _extend = {
         .device_id = const_cast<char *>(extend.device_id.c_str()),
     };
@@ -107,7 +107,7 @@ Return<void> RKNeuralnetworks::rknnInit2(const ::rockchip::hardware::neuralnetwo
 
 Return<void> RKNeuralnetworks::rknnFindDevices(rknnFindDevices_cb _hidl_cb) {
     RECORD_TAG();
-#if IMPL_RKNN
+#if 0
     rknn_devices_id *all_npu_devices = (rknn_devices_id *)malloc(sizeof(rknn_devices_id));
     ret = rknn_find_devices(all_npu_devices);
     if (ret) {

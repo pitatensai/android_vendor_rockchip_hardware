@@ -26,20 +26,20 @@ cc_library_shared {
         "liblog",
         "rockchip.hardware.neuralnetworks@1.0",
         "android.hidl.memory@1.0",
-        "librknn_api",
+        "librknnrt",
     ],
     cflags: ["-DIMPL_RKNN"],
 }
 
 cc_prebuilt_library_shared {
-    name: "librknn_api",
+    name: "librknnrt",
     compile_multilib: "both",
     multilib: {
         lib64: {
-            srcs: ["prebuilts/lib64/librknn_api.so"],
+            srcs: ["prebuilts/librknnrt/lib64/librknnrt.so"],
         },
         lib32: {
-            srcs: ["prebuilts/lib/librknn_api.so"],
+            srcs: ["prebuilts/librknnrt/lib/librknnrt.so"],
         },
     },
     strip: {

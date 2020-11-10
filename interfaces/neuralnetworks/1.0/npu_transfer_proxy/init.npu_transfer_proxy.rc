@@ -1,3 +1,0 @@
-service vendor.npu_transfer_proxy /vendor/bin/npu_transfer_proxy
-    class main
-    oneshot

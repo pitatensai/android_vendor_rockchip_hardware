@@ -41,6 +41,35 @@ static RKNNQueryCmd to_rknn_hal(rknn_query_cmd cmd) {
     }
 }
 
+static RKNNTensorType to_rknn_hal(rknn_tensor_type type) {
+    switch (type)
+    {
+    case RKNN_TENSOR_FLOAT32:
+        return RKNNTensorType::RKNN_TENSOR_FLOAT32;
+    case RKNN_TENSOR_FLOAT16:
+        return RKNNTensorType::RKNN_TENSOR_FLOAT16;
+    case RKNN_TENSOR_INT8:
+        return RKNNTensorType::RKNN_TENSOR_INT8;
+    case RKNN_TENSOR_UINT8:
+        return RKNNTensorType::RKNN_TENSOR_UINT8;
+    case RKNN_TENSOR_INT16:
+        return RKNNTensorType::RKNN_TENSOR_INT16;
+    default:
+        return RKNNTensorType::RKNNTensorType_MAX;
+    }
+}
+
+static RKNNTensorFormat to_rknn_hal(rknn_tensor_format fmt) {
+    switch (fmt) {
+        case RKNN_TENSOR_NCHW:
+            return RKNNTensorFormat::RKNN_TENSOR_NCHW;
+        case RKNN_TENSOR_NHWC:
+            return RKNNTensorFormat::RKNN_TENSOR_NHWC;
+        default:
+            return RKNNTensorFormat::RKNNTensorFormat_MAX;
+    }
+}
+
 namespace rockchip {
 namespace nn {
 
@@ -75,6 +104,7 @@ int RockchipNeuralnetworksBuilder::rknn_find_devices(rknn_devices_id* pdevs) {
 
 int RockchipNeuralnetworksBuilder::rknn_init(rknn_context* context, void *pData, uint32_t size, uint32_t flag) {
     CHECK();
+    int ret_code = 0;
     g_debug_pro = property_get_bool("persist.vendor.rknndebug", false);
     allocateAsh(size, [&](bool success, const hidl_memory& mem) {
         if (!success) {
@@ -100,12 +130,13 @@ int RockchipNeuralnetworksBuilder::rknn_init(rknn_context* context, void *pData,
             });
             if (!ret.isOk()) {
                 ALOGE("Ret Failed!");
+                ret_code = -1;
             } else {
                 ALOGE("Ret Successfully!");
             }
         }
     });
-    return 0;
+    return ret_code;
 }
 
 int RockchipNeuralnetworksBuilder::rknn_init2(rknn_context* context, void *pData, uint32_t size, uint32_t flag, rknn_init_extend* extend) {
@@ -192,11 +223,11 @@ int RockchipNeuralnetworksBuilder::rknn_inputs_set(rknn_context context, uint32_
                     .length = static_cast<uint32_t>(inputs[i].size),
                 };
                 const struct RKNNInput input0 = {
-                    .index = i,
+                    .index = inputs[i].index,
                     .buf = buf,
                     .pass_through = false,
-                    .type = RKNNTensorType::RKNN_TENSOR_UINT8,
-                    .fmt = RKNNTensorFormat::RKNN_TENSOR_NHWC,
+                    .type = to_rknn_hal(inputs[i].type),
+                    .fmt = to_rknn_hal(inputs[i].fmt),
                 };
                 input_array.push_back(input0);
             }
@@ -206,7 +237,10 @@ int RockchipNeuralnetworksBuilder::rknn_inputs_set(rknn_context context, uint32_
                 .inputs = input_array,
                 .pool = mem,
             };
-            _kRKNNInterface->rknnInputsSet(context, request);
+            Return<ErrorStatus> ret = _kRKNNInterface->rknnInputsSet(context, request);
+            if (!ret.isOk()) {
+                ALOGE("rknnInputsSet error!");
+            }
         }
     });
     return 0;
@@ -217,8 +251,13 @@ int RockchipNeuralnetworksBuilder::rknn_run(rknn_context context, rknn_run_exten
     const struct RKNNRunExtend rExt = {
         .frame_id = extend?extend->frame_id:0,
     };
-    _kRKNNInterface->rknnRun(context, rExt);
-    return 0;
+    Return<ErrorStatus> ret = _kRKNNInterface->rknnRun(context, rExt);
+    if (ret.isOk()) {
+        return 0;
+    } else {
+        ALOGE("run error!");
+        return -1;
+    }
 }
 
 int RockchipNeuralnetworksBuilder::rknn_outputs_get(rknn_context context, uint32_t n_outputs, rknn_output outputs[], rknn_output_extend* extend) {
@@ -263,7 +302,10 @@ int RockchipNeuralnetworksBuilder::rknn_outputs_get(rknn_context context, uint32
                 .outputs = output_array,
                 .pool = mem,
             };
-            _kRKNNInterface->rknnOutputsGet(context, response, gExt);
+            Return<ErrorStatus> ret = _kRKNNInterface->rknnOutputsGet(context, response, gExt);
+            if (!ret.isOk()) {
+                ALOGE("rknnInputsSet error!");
+            }
             void *resultPool = memory->getPointer();
             for (uint32_t i = 0; i < n_outputs; i++) {
                 uint32_t cur_offset = 0;
