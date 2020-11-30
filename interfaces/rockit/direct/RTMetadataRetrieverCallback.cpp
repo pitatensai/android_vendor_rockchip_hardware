@@ -258,8 +258,8 @@ int RTMetadataRetrieverCallback::fillVideoFrame(RtMetaData* meta) {
     int32_t crop_left, crop_top, crop_right, crop_bottom;
     if (1) {
         crop_left = crop_top = 0;
-        crop_right = width - 1;
-        crop_bottom = height - 1;
+        crop_right = ctx->mWidth - 1;
+        crop_bottom = ctx->mHeight - 1;
     }
 
     if (converter.isValid()) {
@@ -317,8 +317,8 @@ sp<IMemory> RTMetadataRetrieverCallback::allocVideoFrame(RtMetaData* meta) {
 
     int displayWidth = ctx->mWidth;
     int displayHeight = ctx->mHeight;
-    int width = ctx->mWStride;
-    int height = ctx->mHStride;
+    int width = ctx->mWidth;
+    int height = ctx->mHeight;
     int bpp = ctx->mBpp;
     int rotation = ctx->mRotation;
 
