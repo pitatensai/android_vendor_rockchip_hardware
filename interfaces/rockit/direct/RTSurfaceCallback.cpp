@@ -414,6 +414,61 @@ __FAILED:
     return ret;
 }
 
+INT32 RTSurfaceCallback::lockBuffer(void *windowBuf, void **ptr)
+{
+    status_t err = OK;
+
+    ANativeWindowBuffer *buf = NULL;
+    void *tmpPtr = NULL;
+
+    if (windowBuf == NULL || ptr == NULL) {
+        ALOGE("lockBuffer bad value, windowBuf=%p, &ptr=%p", windowBuf, ptr);
+        return RT_ERR_VALUE;
+    }
+
+    if (mTunnel)
+        return RT_ERR_UNSUPPORT;
+
+    buf = static_cast<ANativeWindowBuffer *>(windowBuf);
+
+    sp<GraphicBuffer> graphicBuffer(GraphicBuffer::from(buf));
+    err = graphicBuffer->lock(GRALLOC_USAGE_SW_WRITE_OFTEN, &tmpPtr);
+    if (err != OK) {
+        ALOGE("graphicBuffer lock failed err - %d", err);
+        return RT_ERR_BAD;
+    }
+
+    *ptr = tmpPtr;
+
+    return RT_OK;
+}
+
+INT32 RTSurfaceCallback::unlockBuffer(void *windowBuf)
+{
+    status_t err = OK;
+
+    ANativeWindowBuffer *buf = NULL;
+
+    if (windowBuf == NULL) {
+        ALOGE("unlockBuffer null input");
+        return RT_ERR_VALUE;
+    }
+
+    if (mTunnel)
+        return RT_ERR_UNSUPPORT;
+
+    buf = static_cast<ANativeWindowBuffer *>(windowBuf);
+
+    sp<GraphicBuffer> graphicBuffer(GraphicBuffer::from(buf));
+    err = graphicBuffer->unlock();
+    if (err != OK) {
+        ALOGE("graphicBuffer unlock failed err - %d", err);
+        return RT_ERR_BAD;
+    }
+
+    return RT_OK;
+}
+
 INT32 RTSurfaceCallback::setCrop(
         INT32 left,
         INT32 top,
