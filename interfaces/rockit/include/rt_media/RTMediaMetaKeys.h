@@ -59,6 +59,7 @@ enum {
     kKeyVCodecChromaLocation = MKTAG('v', 'c', 'l', 'o'),  // INT32
     kKeyVCodecBufferCount    = MKTAG('v', 'c', 'b', 'c'),  // INT32
     kKeyVCodecBufferSize     = MKTAG('v', 'c', 'b', 's'),  // INT32
+    kKeyVCodecSupportFBC     = MKTAG('v', 'c', 'f', 's'),  // INT32
 
     /* video extra features*/
     kKeyVCodecGopSize        = MKTAG('g', 'p', 's', 'z'),  // INT32 encoder feature

@@ -259,6 +259,7 @@ INT32 RTSurfaceCallback::allocateBuffer(RTNativeWindowBufferInfo *info) {
             info->windowBuf = (void *)buf;
         }
         info->name = req.name;
+        info->size = priv_hnd.size;
         info->dupFd = priv_hnd.share_fd;
     }
 

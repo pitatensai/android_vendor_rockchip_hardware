@@ -327,6 +327,7 @@ int RockitHwMpi::init(const RockitHWParamPairs& pairs) {
     uint32_t            height = 0;
     uint32_t            format = 0;
     uint32_t            fastMode = 0;
+    uint32_t            fbcOutput = 0;
     uint32_t            timeMode = 0;
     uint32_t            debug = 0;
 
@@ -351,6 +352,7 @@ int RockitHwMpi::init(const RockitHWParamPairs& pairs) {
     height = (uint32_t)getValue(pairs, (uint32_t)RockitHWParamKey::HW_KEY_HEIGHT);
     format = (uint32_t)getValue(pairs, (uint32_t)RockitHWParamKey::HW_KEY_FORMAT);
     fastMode = (uint32_t)getValue(pairs, (uint32_t)RockitHWParamKey::HW_KEY_FASTMODE);
+    fbcOutput = (uint32_t)getValue(pairs, (uint32_t)RockitHWParamKey::HW_KEY_FBC_OUTPUT);
     timeMode = (uint32_t)getValue(pairs, (uint32_t)RockitHWParamKey::HW_KEY_PRESENT_TIME_ORDER);
     debug  = (uint32_t)getValue(pairs, (uint32_t)RockitHWParamKey::HW_KEY_DEBUG);
 
@@ -390,11 +392,20 @@ int RockitHwMpi::init(const RockitHWParamPairs& pairs) {
         MppFrame frame = NULL;
 
         uint32_t mppFormat = format;
+
+        if (fbcOutput) {
+            ALOGD("use mpp fbc output mode");
+            uint32_t MPP_FRAME_FBC_AFBC_V2 = 0x00200000;
+            mppFormat |= MPP_FRAME_FBC_AFBC_V2;
+            mpp_mpi->control(mpp_ctx, MPP_DEC_SET_OUTPUT_FORMAT, (MppParam)&mppFormat);
+        }
+
         mpp_frame_init(&frame);
         mpp_frame_set_width(frame, width);
         mpp_frame_set_height(frame, height);
         mpp_frame_set_fmt(frame, (MppFrameFormat)mppFormat);
         mpp_mpi->control(mpp_ctx, MPP_DEC_SET_FRAME_INFO, (MppParam)frame);
+
         /*
          * in old mpp version, MPP_DEC_SET_FRAME_INFO can't provide
          * stride information, so it can only use unaligned width

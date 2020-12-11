@@ -87,6 +87,7 @@ enum RockitHWParamKey : uint32_t {
     HW_KEY_HEIGHT_STRIDE,
     HW_KEY_FORMAT,
     HW_KEY_FASTMODE,
+    HW_KEY_FBC_OUTPUT,
     HW_KEY_PRESENT_TIME_ORDER,
     HW_KEY_PTS,
     HW_KEY_DTS,
