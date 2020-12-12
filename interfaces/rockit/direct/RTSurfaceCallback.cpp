@@ -37,23 +37,6 @@ using namespace ::android;
 
 static const char *DRM_DEV_PATH = "/dev/dri/card0";
 
-// dmaType -1: unknown 0: drm 1: ion
-static bool matchIonPlaform() {
-    static INT32 dmaType = -1;
-
-    if (dmaType < 0) {
-        RKChipInfo *chipInfo = getChipName();
-        if (chipInfo != NULL && (chipInfo->type == RK_CHIP_3368 ||
-            chipInfo->type == RK_CHIP_3368H)) {
-            dmaType = 1;
-        } else {
-            dmaType = 0;
-        }
-    }
-
-    return (dmaType == 1);
-}
-
 INT32 drm_open() {
     INT32 fd = open(DRM_DEV_PATH, O_RDWR);
     if (fd < 0) {
@@ -368,68 +351,21 @@ INT32 RTSurfaceCallback::dequeueBufferAndWait(RTNativeWindowBufferInfo *info) {
     return ret;
 }
 
-INT32 RTSurfaceCallback::mmapBuffer(INT32 shareFd, INT32 size, INT32 offset, void **ptr) {
-    INT32 err = 0;
-    RT_RET ret = RT_OK;
-    (void)offset;
-
-    void *tmpPtr = NULL;
-
-    if (shareFd <= 0 || size <= 0 || ptr == NULL) {
-        ALOGE("map input bad value, handle=%d, size=%d, &ptr=%p", shareFd, size, ptr);
-        ret = RT_ERR_VALUE;
-        goto __FAILED;
-    }
-
-    if (matchIonPlaform()) {
-        err = ion_map(shareFd, size, PROT_READ | PROT_WRITE, MAP_SHARED, 0, &tmpPtr);
-    } else {
-        err = drm_map(mDrmFd, shareFd, size, PROT_READ | PROT_WRITE, MAP_SHARED, 0, &tmpPtr, 0);
-    }
-
-    if (err) {
-        ret = RT_ERR_UNKNOWN;
-        goto __FAILED;
-    }
-
-    *ptr = tmpPtr;
-
-__FAILED:
-    return ret;
-}
-
-INT32 RTSurfaceCallback::munmapBuffer(void **ptr, INT32 size) {
-    RT_RET ret = RT_OK;
-
-    if (size <= 0 || ptr == NULL) {
-        ALOGE("ummap input bad value, size=%d, &ptr=%p", size, ptr);
-        ret = RT_ERR_VALUE;
-        goto __FAILED;
-    }
-
-    munmap(*ptr, size);
-    *ptr = NULL;
-
-__FAILED:
-    return ret;
-}
-
-INT32 RTSurfaceCallback::lockBuffer(void *windowBuf, void **ptr)
-{
+INT32 RTSurfaceCallback::mmapBuffer(RTNativeWindowBufferInfo *info, void **ptr) {
     status_t err = OK;
-
     ANativeWindowBuffer *buf = NULL;
     void *tmpPtr = NULL;
+    (void)ptr;
 
-    if (windowBuf == NULL || ptr == NULL) {
-        ALOGE("lockBuffer bad value, windowBuf=%p, &ptr=%p", windowBuf, ptr);
+    if (info->windowBuf == NULL || ptr == NULL) {
+        ALOGE("lockBuffer bad value, windowBuf=%p, &ptr=%p", info->windowBuf, ptr);
         return RT_ERR_VALUE;
     }
 
     if (mTunnel)
         return RT_ERR_UNSUPPORT;
 
-    buf = static_cast<ANativeWindowBuffer *>(windowBuf);
+    buf = static_cast<ANativeWindowBuffer *>(info->windowBuf);
 
     sp<GraphicBuffer> graphicBuffer(GraphicBuffer::from(buf));
     err = graphicBuffer->lock(GRALLOC_USAGE_SW_WRITE_OFTEN, &tmpPtr);
@@ -443,13 +379,12 @@ INT32 RTSurfaceCallback::lockBuffer(void *windowBuf, void **ptr)
     return RT_OK;
 }
 
-INT32 RTSurfaceCallback::unlockBuffer(void *windowBuf)
-{
+INT32 RTSurfaceCallback::munmapBuffer(void **ptr, INT32 size, void *buf) {
     status_t err = OK;
+    (void)ptr;
+    (void)size;
 
-    ANativeWindowBuffer *buf = NULL;
-
-    if (windowBuf == NULL) {
+    if (buf == NULL) {
         ALOGE("unlockBuffer null input");
         return RT_ERR_VALUE;
     }
@@ -457,9 +392,8 @@ INT32 RTSurfaceCallback::unlockBuffer(void *windowBuf)
     if (mTunnel)
         return RT_ERR_UNSUPPORT;
 
-    buf = static_cast<ANativeWindowBuffer *>(windowBuf);
-
-    sp<GraphicBuffer> graphicBuffer(GraphicBuffer::from(buf));
+    sp<GraphicBuffer> graphicBuffer(
+            GraphicBuffer::from(static_cast<ANativeWindowBuffer *>(buf)));
     err = graphicBuffer->unlock();
     if (err != OK) {
         ALOGE("graphicBuffer unlock failed err - %d", err);
