@@ -265,7 +265,7 @@ int RTMetadataRetrieverCallback::fillVideoFrame(RtMetaData* meta) {
     if (converter.isValid()) {
         // first. if input format is yuv420sp 10bit, convert it to yuv420sp 8 bit
         if (ctx->mSrcFormat == RT_FMT_YUV420SP_10BIT) {
-            dstYuvAddr = (uint8_t *)malloc(width * height * 3 / 2);
+            dstYuvAddr = (uint8_t *)malloc(ctx->mHStride * ctx->mWStride * 3 / 2);
             if (dstYuvAddr == NULL) {
                 ALOGE("fail to malloc yuv address.");
                 return -1;
@@ -382,8 +382,8 @@ int RTMetadataRetrieverCallback::convert10bitTo8bit(uint8_t *src, uint8_t *dst) 
 
     int horStride = ctx->mWStride;
     int verStride = ctx->mHStride;
-    int width = ctx->mWidth;
-    int height = ctx->mHeight;
+    int width = ctx->mWStride;
+    int height = ctx->mHStride;
 
     uint8_t *srcBase = src;
     uint8_t *dstBase = dst;
