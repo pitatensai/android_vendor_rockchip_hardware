@@ -188,8 +188,11 @@ int RockchipNeuralnetworksBuilder::rknn_query(rknn_context context, rknn_query_c
         if (!success) {
             ALOGE("Allocate memory failed!");
         } else {
-            _kRKNNInterface->rknnQuery(context, to_rknn_hal(cmd), mem, size);
             sp<IMemory> pMem = mapMemory(mem);
+            pMem->update();
+            memcpy(pMem->getPointer(), info, size);
+            pMem->commit();
+            _kRKNNInterface->rknnQuery(context, to_rknn_hal(cmd), mem, size);
             memcpy(info, pMem->getPointer(), size);
         }
     });
