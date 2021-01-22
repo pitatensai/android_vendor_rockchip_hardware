@@ -1,5 +1,5 @@
 cc_library_shared {
-    name: "librknnhal_bridge",
+    name: "librknnhal_bridge.rockchip",
     srcs: ["**/*.cpp"],
 //    vendor: true,
     shared_libs: [
@@ -18,7 +18,13 @@ cc_library_shared {
 }
 
 ndk_library {
-    name: "librknnhal_bridge",
+    name: "librknnhal_bridge.rockchip",
     symbol_file: "librknnhal_bridge.map.txt",
     first_version: "27",
+}
+
+prebuilt_etc {
+    name: "public.libraries-rockchip",
+    src: "public.libraries-rockchip.txt",
+    filename_from_src: true,
 }
