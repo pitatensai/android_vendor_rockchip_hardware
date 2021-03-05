@@ -141,11 +141,19 @@ int32_t RTAudioSinkCallback::getPlaybackRate(RTAudioPlaybackRate *param) {
     ALOGV("RTAudioSinkCallback start in");
     android::AudioPlaybackRate rate;
     int32_t status = mAudioSink->getPlaybackRate(&rate);
-    param->mSpeed = rate.mSpeed;
-    param->mPitch = rate.mPitch;
-    param->mStretchMode = (AAudioTimestretchStretchMode)rate.mStretchMode;
-    param->mFallbackMode = (AAudioTimestretchFallbackMode)rate.mFallbackMode;
-    return status;
+    if (status != NO_ERROR) {
+        ALOGW("AudioSink not prepared yet, set deault rate value.");
+        param->mSpeed = 1.0f;
+        param->mPitch = 1.0f;
+        param->mStretchMode = AAUDIO_TIMESTRETCH_STRETCH_DEFAULT;
+        param->mFallbackMode = AAUDIO_TIMESTRETCH_FALLBACK_DEFAULT;
+    } else {
+        param->mSpeed = rate.mSpeed;
+        param->mPitch = rate.mPitch;
+        param->mStretchMode = (AAudioTimestretchStretchMode)rate.mStretchMode;
+        param->mFallbackMode = (AAudioTimestretchFallbackMode)rate.mFallbackMode;
+    }
+    return NO_ERROR;
 }
 
 

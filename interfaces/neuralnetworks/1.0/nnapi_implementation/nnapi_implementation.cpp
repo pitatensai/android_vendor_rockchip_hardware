@@ -119,9 +119,9 @@ static const NnApi LoadNnApi() {
   void* librknnhal_bridge = nullptr;
   // TODO(b/123243014): change RTLD_LOCAL? Assumes there can be multiple
   // instances of nn api RT
-  librknnhal_bridge = dlopen("librknnhal_bridge.so", RTLD_LAZY | RTLD_LOCAL);
+  librknnhal_bridge = dlopen("librknnhal_bridge.rockchip.so", RTLD_LAZY | RTLD_LOCAL);
   if (librknnhal_bridge == nullptr) {
-    NNAPI_LOG("nnapi error: unable to open library %s", "librknnhal_bridge.so");
+    NNAPI_LOG("nnapi error: unable to open library %s", "librknnhal_bridge.rockchip.so");
   }
 
   nnapi.nnapi_exists = librknnhal_bridge != nullptr;
