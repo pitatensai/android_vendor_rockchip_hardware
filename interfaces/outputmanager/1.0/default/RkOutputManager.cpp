@@ -76,6 +76,26 @@ Return<Result> RkOutputManager::setGamma(Display display, uint32_t size, const h
     return res;
 }
 
+Return<Result> RkOutputManager::set3DLut(Display display, uint32_t size, const hidl_vec<uint16_t>& r, const hidl_vec<uint16_t>& g, const hidl_vec<uint16_t>& b)
+{
+    uint16_t red[size];
+    uint16_t green[size];
+    uint16_t blue[size];
+    Result res = Result::UNKNOWN;
+    int ret = 0;
+
+    for (uint32_t i=0;i<size;i++){
+        red[i] = r[i];
+        green[i] = g[i];
+        blue[i] = b[i];
+    }
+
+    ret = mHwOutput->set3DLut(mHwOutput, display, size, red, green, blue);
+    if (ret == 0)
+        res = Result::OK;
+    return res;
+}
+
 Return<Result> RkOutputManager::setBrightness(Display display, uint32_t value)
 {
     mHwOutput->setBrightness(mHwOutput, display, value);
@@ -287,6 +307,40 @@ Return<void> RkOutputManager::getDisplayModes(Display display, getDisplayModes_c
     if (mModes)
         free(mModes);
     return Void();
+}
+
+Return<void> RkOutputManager::getConnectorInfo(getConnectorInfo_cb _hidl_cb)
+{
+    connector_info_t* mInfo = NULL;
+    uint32_t size=0;
+    mInfo = mHwOutput->getConnectorInfo(mHwOutput, &size);
+    Result res = Result::UNKNOWN;
+    hidl_vec<RkConnectorInfo> mRkConnectorInfo;
+
+    if (mInfo != NULL) {
+        res = Result::OK;
+        mRkConnectorInfo.resize((size_t)size);
+        for (uint32_t i=0;i<size;i++) {
+            mRkConnectorInfo[i].type = mInfo[i].type;
+            mRkConnectorInfo[i].id = mInfo[i].id;
+            mRkConnectorInfo[i].state = mInfo[i].state;
+        }
+    }
+
+    _hidl_cb(res, mRkConnectorInfo);
+    if (mInfo)
+        free(mInfo);
+    return Void();
+}
+
+Return<Result> RkOutputManager::updateDispHeader()
+{
+    Result res = Result::UNKNOWN;
+    int ret = mHwOutput->updateDispHeader(mHwOutput);
+    if(ret == 0){
+        res = Result::OK;
+    }
+    return res;
 }
 
 Return<void> RkOutputManager::saveConfig()

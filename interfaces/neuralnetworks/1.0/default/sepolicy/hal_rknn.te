@@ -21,5 +21,9 @@ typeattribute ephemeral_app hal_rknn_client;
 allow vendor-rknn-hal hal_allocator_server:fd use;
 allow hal_rknn_client vendor-rknn_hal_hwservice:hwservice_manager find;
 
+#
+allow vendor-rknn-hal gpu_device:dir r_dir_perms;
+allow vendor-rknn-hal gpu_device:chr_file rw_file_perms;
+
 hwbinder_use(vendor-rknn-hal)
 vndbinder_use(vendor-rknn-hal)
